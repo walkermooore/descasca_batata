@@ -25,6 +25,53 @@ local beam: Beam
 local a0: Attachment
 local a1: Attachment
 local lastText = ""
+local typeStart: number? = nil
+local portrait: ViewportFrame
+local portraitModel: Model? = nil
+local portraitCam: Camera? = nil
+local portraitBase: CFrame? = nil
+
+-- Copia o Chef da cozinha para o retrato (uma vez) e mexe de leve, como se estivesse falando.
+local function updatePortrait()
+	if not portrait or not panel.Visible then
+		return
+	end
+	if not portraitModel then
+		local K = C.Kitchen.GetMine()
+		local chef = K and K:FindFirstChild("Chef")
+		if not chef then
+			return
+		end
+		local clone = chef:Clone()
+		for _, d in clone:GetDescendants() do
+			if d:IsA("BasePart") then
+				d.Anchored = true
+			elseif d:IsA("Script") or d:IsA("LocalScript") or d:IsA("ProximityPrompt") then
+				d:Destroy()
+			end
+		end
+		clone:PivotTo(CFrame.new())
+		clone.Parent = portrait
+		local cf, size = clone:GetBoundingBox()
+		portraitModel = clone
+		portraitBase = clone:GetPivot()
+		local cam = Instance.new("Camera")
+		cam.FieldOfView = 30
+		-- rosto: parte de cima do modelo, de frente (o Chef olha para -Z)
+		local face = cf.Position + Vector3.new(0, size.Y * 0.18, 0)
+		local faceOffset = chef:GetAttribute("FaceOffset")
+		local dir = CFrame.Angles(0, math.rad(faceOffset or 0), 0):VectorToWorldSpace(Vector3.new(0, 0.12, -1)).Unit
+		cam.CFrame = CFrame.lookAt(face + dir * size.Y * 1.35, face)
+		cam.Parent = portrait
+		portrait.CurrentCamera = cam
+		portraitCam = cam
+	end
+	local t = os.clock()
+	local talking = typeStart ~= nil
+	local bob = if talking then math.sin(t * 16) * 0.04 else math.sin(t * 2) * 0.02
+	local tilt = math.sin(t * 1.3) * math.rad(4)
+	portraitModel:PivotTo(portraitBase * CFrame.new(0, bob, 0) * CFrame.Angles(0, tilt, 0))
+end
 
 function Tutorial.Step(): number
 	return player:GetAttribute("TutorialStep") or DONE
@@ -84,7 +131,19 @@ local function update()
 	if t and t ~= lastText then
 		lastText = t
 		textLabel.Text = t
+		textLabel.MaxVisibleGraphemes = 0
+		typeStart = os.clock()
 	end
+	if typeStart then
+		local n = math.floor((os.clock() - typeStart) * 55)
+		if n >= (utf8.len(textLabel.Text) or 0) then
+			textLabel.MaxVisibleGraphemes = -1
+			typeStart = nil
+		else
+			textLabel.MaxVisibleGraphemes = n
+		end
+	end
+	updatePortrait()
 
 	local part = if step < DONE and not peeling then target() else nil
 	local hrp = player.Character and player.Character:FindFirstChild("HumanoidRootPart") :: BasePart?
@@ -115,35 +174,70 @@ function Tutorial.Init(controllers)
 	C = controllers
 	local T = C.HUD.Theme
 
+	-- balão do Chef: retrato 3D do próprio Chef da cozinha + nome + fala escrita aos poucos
 	panel = Instance.new("Frame")
 	panel.Name = "Chef"
 	panel.AnchorPoint = Vector2.new(0.5, 1)
 	panel.Position = UDim2.new(0.5, 0, 1, -18)
-	panel.Size = UDim2.fromOffset(560, 92)
+	panel.Size = UDim2.fromOffset(600, 112)
 	panel.BackgroundColor3 = T.Panel
-	panel.BackgroundTransparency = 0.06
+	panel.BackgroundTransparency = 0.04
 	panel.Visible = false
 	panel.Parent = C.HUD.Gui()
-	C.HUD.Corner(panel, 10)
+	C.HUD.Corner(panel, 12)
 	C.HUD.Stroke(panel, T.Rust, 2)
-	local face = Instance.new("Frame")
-	face.Size = UDim2.fromOffset(68, 68)
-	face.Position = UDim2.fromOffset(12, 12)
-	face.BackgroundColor3 = Color3.fromRGB(150, 112, 70)
-	face.Parent = panel
-	C.HUD.Corner(face, 34)
-	C.HUD.Stroke(face, T.Bone, 2)
-	C.HUD.Label(face, { Text = "• •\n—", TextColor3 = Color3.fromRGB(30, 22, 16), Size = UDim2.fromScale(1, 1), Font = Enum.Font.GothamBold })
-	C.HUD.Label(panel, { Text = Strings.ChefName, TextColor3 = T.RustBright, Font = T.FontTitle, TextXAlignment = Enum.TextXAlignment.Left, Size = UDim2.new(1, -110, 0, 22), Position = UDim2.fromOffset(94, 8) })
+	local grad = Instance.new("UIGradient")
+	grad.Rotation = 90
+	grad.Color = ColorSequence.new(Color3.fromRGB(255, 255, 255), Color3.fromRGB(170, 160, 150))
+	grad.Parent = panel
+	local scale = Instance.new("UIScale")
+	scale.Parent = panel
+	local function fit()
+		local vp = Workspace.CurrentCamera.ViewportSize
+		scale.Scale = math.min(1, (vp.X - 40) / 610)
+	end
+	fit()
+	Workspace.CurrentCamera:GetPropertyChangedSignal("ViewportSize"):Connect(fit)
+
+	-- moldura do retrato (sai um pouco para fora do balão)
+	local frame = Instance.new("Frame")
+	frame.Name = "Portrait"
+	frame.Size = UDim2.fromOffset(104, 104)
+	frame.Position = UDim2.fromOffset(10, -18)
+	frame.BackgroundColor3 = Color3.fromRGB(48, 40, 34)
+	frame.Parent = panel
+	C.HUD.Corner(frame, 14)
+	C.HUD.Stroke(frame, T.Gold, 3)
+	local vpf = Instance.new("ViewportFrame")
+	vpf.Size = UDim2.fromScale(1, 1)
+	vpf.BackgroundColor3 = Color3.fromRGB(62, 50, 40)
+	vpf.Ambient = Color3.fromRGB(170, 160, 150)
+	vpf.LightColor = Color3.fromRGB(255, 236, 210)
+	vpf.LightDirection = Vector3.new(-0.4, -0.6, -1)
+	vpf.Parent = frame
+	C.HUD.Corner(vpf, 14)
+	portrait = vpf
+	local nameTag = C.HUD.Label(panel, {
+		Text = Strings.ChefName,
+		TextColor3 = T.Gold,
+		Font = T.FontTitle,
+		TextXAlignment = Enum.TextXAlignment.Left,
+		Size = UDim2.new(1, -140, 0, 24),
+		Position = UDim2.fromOffset(128, 8),
+	})
+	local st = Instance.new("UIStroke")
+	st.Thickness = 1.5
+	st.Color = Color3.fromRGB(20, 14, 10)
+	st.Parent = nameTag
 	textLabel = C.HUD.Label(panel, {
 		Text = "",
 		TextWrapped = true,
 		TextScaled = false,
-		TextSize = 18,
+		TextSize = 19,
 		TextXAlignment = Enum.TextXAlignment.Left,
 		TextYAlignment = Enum.TextYAlignment.Top,
-		Size = UDim2.new(1, -110, 0, 56),
-		Position = UDim2.fromOffset(94, 32),
+		Size = UDim2.new(1, -144, 0, 74),
+		Position = UDim2.fromOffset(128, 34),
 	})
 
 	-- marcador pulando sobre o objetivo + linha no chão

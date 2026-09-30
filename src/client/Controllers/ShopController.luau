@@ -136,11 +136,30 @@ local function row(r, order: number, ownedSet, coins: number)
 	local f = Instance.new("Frame")
 	f.Name = r.Id
 	f.LayoutOrder = order
-	f.Size = UDim2.new(1, -8, 0, 78)
+	f.Size = UDim2.new(1, -8, 0, 86)
 	f.BackgroundColor3 = T.PanelLight
-	f.BackgroundTransparency = 0.1
+	f.BackgroundTransparency = 0.05
 	f.Parent = list
-	C.HUD.Corner(f, 6)
+	C.HUD.Corner(f, 8)
+	local grad = Instance.new("UIGradient")
+	grad.Rotation = 90
+	grad.Color = ColorSequence.new(Color3.fromRGB(255, 255, 255), Color3.fromRGB(190, 180, 170))
+	grad.Parent = f
+	-- miniatura 3D do item
+	local kind = if r.IsTool then "Tool"
+		elseif r.IsUpgrade then "Upgrade"
+		elseif r.Theme then "Theme"
+		elseif r.Robux then "Pass"
+		elseif Config.CollectionById[r.Id] then "Item"
+		else "Other"
+	local previewId = if r.IsUpgrade then r.UpgradeId elseif r.Theme then r.Theme else r.Id
+	local ok, vpf = pcall(C.Preview.Make, f, kind, previewId)
+	if ok and vpf then
+		vpf.Size = UDim2.fromOffset(70, 70)
+		vpf.Position = UDim2.fromOffset(16, 8)
+		C.HUD.Corner(vpf, 8)
+		C.HUD.Stroke(vpf, if r.Tier then Config.TierColors[r.Tier] else T.Rust, 2)
+	end
 	local st = C.HUD.Stroke(f, if r.Id == highlightId then T.Gold else T.Panel, if r.Id == highlightId then 3 else 1)
 	if r.Tier then
 		local bar = Instance.new("Frame")
@@ -152,9 +171,10 @@ local function row(r, order: number, ownedSet, coins: number)
 	end
 	C.HUD.Label(f, {
 		Text = r.Name,
+		TextColor3 = T.Bone,
 		TextXAlignment = Enum.TextXAlignment.Left,
-		Size = UDim2.new(1, -190, 0, 28),
-		Position = UDim2.fromOffset(20, 6),
+		Size = UDim2.new(1, -276, 0, 28),
+		Position = UDim2.fromOffset(98, 8),
 	})
 	C.HUD.Label(f, {
 		Text = r.Desc or "",
@@ -164,8 +184,8 @@ local function row(r, order: number, ownedSet, coins: number)
 		TextWrapped = true,
 		TextScaled = false,
 		TextSize = 15,
-		Size = UDim2.new(1, -190, 0, 38),
-		Position = UDim2.fromOffset(20, 36),
+		Size = UDim2.new(1, -276, 0, 44),
+		Position = UDim2.fromOffset(98, 38),
 	})
 
 	local b = Instance.new("TextButton")

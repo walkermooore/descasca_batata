@@ -501,4 +501,12 @@ return {
 	{ "Arraste a faca na casca · A/D gira · W/S inclina · tire faixa por faixa", "Drag the knife over the skin · A/D spins · W/S tilts · peel strip by strip", "Arrastra el cuchillo por la cáscara · A/D gira · W/S inclina · pela franja por franja" },
 	{ "Arraste o dedo na casca · < > gira a batata · tire faixa por faixa", "Drag your finger over the skin · < > spins the potato · peel strip by strip", "Arrastra el dedo por la cáscara · < > gira la papa · pela franja por franja" },
 	{ "Vá até a mesa e aperte Descascar. Passe a faca pela casca do jeito que quiser. Cada passada tira uma faixa: gire a batata (A/D) e vá tirando faixa por faixa.", "Go to the table and press Peel. Run the knife over the skin any way you like. Each pass removes one strip: spin the potato (A/D) and peel strip by strip.", "Ve a la mesa y pulsa Pelar. Pasa el cuchillo por la cáscara como quieras. Cada pasada quita una franja: gira la papa (A/D) y pela franja por franja." },
+	{ "Tambor descascador", "Peeling drum", "Tambor pelador" },
+	{ "Um tambor giratório enorme que descasca muitas batatas de uma vez e despeja na esteira.", "A huge spinning drum that peels lots of potatoes at once and dumps them on the belt.", "Un tambor giratorio enorme que pela muchas papas a la vez y las echa en la cinta." },
+	{ "Amassador de purê", "Mash press", "Prensa de puré" },
+	{ "Vira as batatas em purê para o banquete do Rei antes do carrinho. Purê vale muito mais.", "Turns potatoes into mash for the King's feast before the cart. Mash is worth much more.", "Convierte las papas en puré para el banquete del Rey antes del carrito. El puré vale mucho más." },
+	{ "TAMBOR", "DRUM", "TAMBOR" },
+	{ "PURÊ", "MASH", "PURÉ" },
+	{ "Lâmina afiada: corte mais limpo e +10% no valor de cada batata.", "Sharp blade: cleaner cut and +10% value on each potato.", "Hoja afilada: corte más limpio y +10% al valor de cada papa." },
+	{ "Tira 2 faixas por passada.", "Removes 2 strips per stroke.", "Quita 2 franjas por pasada." },
 }

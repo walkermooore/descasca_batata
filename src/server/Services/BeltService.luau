@@ -76,7 +76,7 @@ function BeltService.ValueMultiplier(player: Player?): number
 	if not player then
 		return 1
 	end
-	return (1 + BeltService.UpgradeValue(player, "Washer") / 100) * BeltService.UpgradeValue(player, "Cutter")
+	return (1 + BeltService.UpgradeValue(player, "Washer") / 100) * BeltService.UpgradeValue(player, "Cutter") * BeltService.UpgradeValue(player, "Masher")
 end
 
 -- ---------------------------------------------------------------- caminho
@@ -183,6 +183,9 @@ function BeltService.Refresh(K)
 	showMachine(K.Belt:FindFirstChild("Washer"), owner ~= nil and BeltService.UpgradeValue(owner, "Washer") > 0)
 	showMachine(K.Belt:FindFirstChild("Cutter"), owner ~= nil and BeltService.UpgradeValue(owner, "Cutter") > 1)
 	showMachine(K.Belt:FindFirstChild("Feeder"), owner ~= nil and BeltService.UpgradeValue(owner, "Feeder") > 0)
+	showMachine(K.Belt:FindFirstChild("Drum"), owner ~= nil and BeltService.UpgradeValue(owner, "Drum") > 0)
+	showMachine(K.Belt:FindFirstChild("Masher"), owner ~= nil and BeltService.UpgradeValue(owner, "Masher") > 1)
+	K.Model:SetAttribute("MasherOn", owner ~= nil and BeltService.UpgradeValue(owner, "Masher") > 1)
 	K.Model:SetAttribute("CutterOn", owner ~= nil and BeltService.UpgradeValue(owner, "Cutter") > 1)
 	local auto = K.Belt:FindFirstChild("AutoPeeler")
 	if not auto then
@@ -210,8 +213,15 @@ local function autoValue(player: Player): number
 end
 
 -- Moedas/min que chegam sozinhas ao Rei (limitado pelo que o carrinho consegue levar).
+function BeltService.AutoRate(player: Player?): number
+	if not player then
+		return 0
+	end
+	return BeltService.UpgradeValue(player, "AutoPeel") + BeltService.UpgradeValue(player, "Drum")
+end
+
 function BeltService.AutoCoinsPerMinute(player: Player): number
-	local rate = BeltService.UpgradeValue(player, "AutoPeel")
+	local rate = BeltService.AutoRate(player)
 	if rate <= 0 then
 		return 0
 	end
@@ -230,7 +240,7 @@ local function tickKitchen(K, dt: number)
 	local now = Workspace:GetServerTimeNow()
 	-- descascador automático
 	if K.Owner then
-		local rate = BeltService.UpgradeValue(K.Owner, "AutoPeel")
+		local rate = BeltService.AutoRate(K.Owner)
 		if rate > 0 then
 			st.AutoAcc += rate / 60 * dt
 			while st.AutoAcc >= 1 do

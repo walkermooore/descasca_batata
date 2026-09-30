@@ -93,6 +93,30 @@ local function track(K: Instance)
 	local auto = belt:FindFirstChild("AutoPeeler")
 	info.Drum = auto and auto:FindFirstChild("Drum")
 	info.DrumCF = info.Drum and info.Drum.CFrame
+	-- tambor grande e prensa do purê
+	local big = belt:FindFirstChild("Drum")
+	info.BigDrum = big
+	info.BigParts = {}
+	if big then
+		for _, n in { "DrumBody", "Ring" } do
+			for _, p in big:GetChildren() do
+				if p.Name == n then
+					table.insert(info.BigParts, { Part = p, CF = p.CFrame })
+				end
+			end
+		end
+	end
+	local masher = belt:FindFirstChild("Masher")
+	info.Masher = masher
+	info.MasherParts = {}
+	if masher then
+		for _, n in { "Piston", "Press" } do
+			local p = masher:FindFirstChild(n)
+			if p then
+				table.insert(info.MasherParts, { Part = p, CF = p.CFrame })
+			end
+		end
+	end
 	belts[K] = info
 end
 
@@ -142,6 +166,17 @@ local function step()
 						p.CFrame = CFrame.lookAt(pos + side, pos + side + dir) * CFrame.Angles(-roll, 0, 0)
 					end
 				end
+			end
+		end
+		if info.BigDrum and info.BigDrum:GetAttribute("Active") then
+			for _, it in info.BigParts do
+				it.Part.CFrame = it.CF * CFrame.Angles(t * 2.5, 0, 0)
+			end
+		end
+		if info.Masher and info.Masher:GetAttribute("Active") then
+			local down = math.max(0, math.sin(t * 5)) * 0.9
+			for _, it in info.MasherParts do
+				it.Part.CFrame = it.CF * CFrame.new(0, -down, 0)
 			end
 		end
 		-- tambor do descascador automático

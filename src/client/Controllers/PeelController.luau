@@ -336,7 +336,7 @@ local function knifeCut(hit: Vector3)
 		if view:HitPatch(pid, C.Effects.Folder(), cfg.StripDebrisLifetime) then
 			s.CutSet[pid] = true
 			table.insert(s.Cut, pid)
-			if os.clock() - lastCrunch > 0.05 then
+			if os.clock() - lastCrunch > 0.09 then
 				lastCrunch = os.clock()
 				C.Effects.Play("Crunch", 1.3 + math.random() * 0.3, 0.25)
 			end

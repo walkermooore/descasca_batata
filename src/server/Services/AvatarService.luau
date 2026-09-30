@@ -118,6 +118,17 @@ function AvatarService.Init(services)
 	S = services
 	local function watch(player: Player)
 		player.CharacterAdded:Connect(function(char)
+			-- grupo "Players": atravessa o carrinho, a esteira e a decoração pequena (grupo "NoPlayer"),
+			-- para a porta e o caminho dentro da cozinha ficarem livres
+			local function group(d: Instance)
+				if d:IsA("BasePart") then
+					d.CollisionGroup = "Players"
+				end
+			end
+			for _, d in char:GetDescendants() do
+				group(d)
+			end
+			char.DescendantAdded:Connect(group)
 			char:WaitForChild("Humanoid", 10)
 			char:WaitForChild("UpperTorso", 5)
 			task.wait(0.5) -- espera a aparência do avatar carregar

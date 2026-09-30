@@ -227,8 +227,8 @@ end
 -- 3. Ferramentas de mão (Tier = cor de tier da seção 7.1)
 Config.Tools = {
 	{ Id = "FacaCega", Name = "Faca cega", Cost = 0, Tier = 1, StripsPerStroke = 1, GreenWidth = 0.30, Desc = "Lâmina lascada. Melhor que nada." },
-	{ Id = "FacaCozinha", Name = "Faca de cozinha", Cost = 120, Tier = 2, StripsPerStroke = 1, GreenWidth = 0.40, ValueBonus = 0.10, Desc = "Faixa verde 40%. +10% no valor de cada batata." },
-	{ Id = "DescascadorY", Name = "Descascador em Y", Cost = 600, Tier = 3, StripsPerStroke = 2, GreenWidth = 0.45, RotateTime = 0.10, Desc = "Tira 2 faixas por passada. Batata gira mais rápido." },
+	{ Id = "FacaCozinha", Name = "Faca de cozinha", Cost = 120, Tier = 2, StripsPerStroke = 1, GreenWidth = 0.40, ValueBonus = 0.10, Desc = "Lâmina afiada: corte mais limpo e +10% no valor de cada batata." },
+	{ Id = "DescascadorY", Name = "Descascador em Y", Cost = 600, Tier = 3, StripsPerStroke = 2, GreenWidth = 0.45, RotateTime = 0.10, Desc = "Tira 2 faixas por passada." },
 	{ Id = "DescascadorDuplo", Name = "Descascador duplo", Cost = 4000, Tier = 4, StripsPerStroke = 3, GreenWidth = 0.55, Desc = "Tira 3 faixas por passada. Libera o combo x4." },
 	{ Id = "LaminaVapor", Name = "Lâmina a vapor", Cost = 25000, Tier = 5, StripsPerStroke = 4, GreenWidth = 0.60, CompostPerStrip = 1, Desc = "Tira 4 faixas. Cada faixa vira adubo (+1 Moeda)." },
 	{ Id = "Laser", Name = "Laser de cozinha", Cost = 150000, Tier = 6, StripsPerStroke = 6, GreenWidth = 0.70, GoldenChance = 1 / 400, Desc = "Tira 6 faixas. Batata dourada: 1 em 400." },
@@ -275,6 +275,16 @@ Config.Upgrades = {
 		Id = "Cutter", Name = "Cortador de fritas", Unit = "x valor",
 		Desc = "Corta as batatas em fritas antes do carrinho. Fritas valem mais para o Rei.",
 		Levels = { { Value = 1 }, { Value = 1.5, Cost = 2000 }, { Value = 2, Cost = 10000 }, { Value = 3, Cost = 50000 }, { Value = 5, Cost = 250000 } },
+	},
+	{
+		Id = "Drum", Name = "Tambor descascador", Unit = "batatas/min",
+		Desc = "Um tambor giratório enorme que descasca muitas batatas de uma vez e despeja na esteira.",
+		Levels = { { Value = 0 }, { Value = 15, Cost = 20000 }, { Value = 35, Cost = 80000 }, { Value = 70, Cost = 300000 }, { Value = 140, Cost = 1200000 } },
+	},
+	{
+		Id = "Masher", Name = "Amassador de purê", Unit = "x valor",
+		Desc = "Vira as batatas em purê para o banquete do Rei antes do carrinho. Purê vale muito mais.",
+		Levels = { { Value = 1 }, { Value = 1.5, Cost = 40000 }, { Value = 2, Cost = 200000 }, { Value = 3, Cost = 1000000 } },
 	},
 }
 Config.UpgradesById = {}

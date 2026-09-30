@@ -222,21 +222,41 @@ end
 
 function PotatoView:Spin(delta: number)
 	self.Beta += delta
+	self.Dirty = true
 end
 
 function PotatoView:TiltBy(delta: number)
 	local max = Config.Peel.Free.MaxTilt
 	self.Tilt = math.clamp(self.Tilt + delta, -max, max)
+	self.Dirty = true
 end
 
 function PotatoView:Update(_dt: number)
 	if self.PulseLight then
 		self.PulseLight.Brightness = 0.25 + 0.3 * (0.5 + 0.5 * math.sin(os.clock() * math.pi * 2))
 	end
-	self:Apply()
+	-- mover ~200 peças por frame pesava: só reposiciona quando a batata gira ou inclina
+	if self.Dirty then
+		self.Dirty = false
+		self:Apply()
+	end
 end
 
 -- ---------------------------------------------------------------- camadas
+
+-- Lascas vivas (as mais antigas somem quando passa do limite: física e peças demais davam lag).
+local MAX_CURLS = 30
+local curls: { BasePart } = {}
+
+local function trackCurl(p: BasePart)
+	table.insert(curls, p)
+	while #curls > MAX_CURLS do
+		local old = table.remove(curls, 1)
+		if old and old.Parent then
+			old:Destroy()
+		end
+	end
+end
 
 local function fadeAway(parts: { BasePart }, lifetime: number)
 	task.delay(math.max(lifetime - 0.6, 0), function()
@@ -300,14 +320,31 @@ function PotatoView:HitPatch(id: number, debrisParent: Instance, lifetime: numbe
 	piece.Material = patch.Main.Material
 	piece.Color = wasColor
 	piece.Transparency = 0
-	piece.Anchored = false
-	piece.CanCollide = true
+	-- cai girando até a tábua por uma curva animada (sem física: bem mais leve)
+	piece.Anchored = true
+	piece.CanCollide = false
 	piece.CanQuery = false
 	piece.CanTouch = false
-	piece.CastShadow = true
+	piece.CastShadow = false
 	piece.Parent = debrisParent
-	piece.AssemblyLinearVelocity = out * 2.5 + Vector3.new(0, 2, 0) + root.RightVector * (math.random() - 0.5) * 2
-	piece.AssemblyAngularVelocity = root:VectorToWorldSpace(seg.Across) * (8 + math.random() * 6)
+	local start = piece.CFrame
+	local landing = start.Position + out * 0.9 + root.RightVector * (math.random() - 0.5) * 1.2
+	landing = Vector3.new(landing.X, self.BaseCF.Position.Y - self.A + 0.1, landing.Z)
+	local spinAxis = root:VectorToWorldSpace(seg.Across)
+	local t0 = os.clock()
+	local fall = 0.45
+	task.spawn(function()
+		while piece.Parent do
+			local a = math.min((os.clock() - t0) / fall, 1)
+			local pos = start.Position:Lerp(landing, a) + Vector3.new(0, math.sin(a * math.pi) * 0.5, 0)
+			piece.CFrame = CFrame.new(pos) * CFrame.fromAxisAngle(spinAxis, a * 6) * (start - start.Position)
+			if a >= 1 then
+				break
+			end
+			task.wait()
+		end
+	end)
+	trackCurl(piece)
 	fadeAway({ piece }, lifetime)
 	return true
 end

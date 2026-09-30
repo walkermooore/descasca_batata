@@ -1,0 +1,383 @@
+-- ItemPreview: miniaturas 3D dos itens da loja (ViewportFrame que gira devagar).
+--   * Ferramentas: montadas aqui (faca, descascador em Y, lâmina a vapor, laser).
+--   * Máquinas da cozinha: cópia da máquina de verdade da esteira (lavadora, fritas...).
+--   * Itens de coleta e temas: modelinhos simples.
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
+local Workspace = game:GetService("Workspace")
+
+local Config = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Config"))
+
+local player = Players.LocalPlayer
+
+local ItemPreview = {}
+
+local spinning: { { Model: Model, Base: CFrame } } = {}
+
+local function part(m: Model, size: Vector3, cf: CFrame, color: Color3, mat: Enum.Material, shape: Enum.PartType?)
+	local p = Instance.new("Part")
+	p.Anchored = true
+	p.Size = size
+	p.CFrame = cf
+	p.Color = color
+	p.Material = mat
+	if shape then
+		p.Shape = shape
+	end
+	p.Parent = m
+	return p
+end
+
+local METAL = Color3.fromRGB(176, 178, 184)
+local STEEL = Color3.fromRGB(214, 218, 224)
+local DARK = Color3.fromRGB(34, 32, 30)
+local WOOD = Color3.fromRGB(86, 56, 36)
+local BRASS = Color3.fromRGB(190, 146, 70)
+local RUBBER_Y = Color3.fromRGB(232, 196, 54)
+
+local rad = math.rad
+
+-- Cilindro deitado ao longo do eixo Z (o Cylinder do Roblox nasce no eixo X).
+local function cylZ(m: Model, len: number, dia: number, cf: CFrame, color: Color3, mat: Enum.Material)
+	return part(m, Vector3.new(len, dia, dia), cf * CFrame.Angles(0, rad(90), 0), color, mat, Enum.PartType.Cylinder)
+end
+-- Cilindro em pé (eixo Y).
+local function cylY(m: Model, len: number, dia: number, cf: CFrame, color: Color3, mat: Enum.Material)
+	return part(m, Vector3.new(len, dia, dia), cf * CFrame.Angles(0, 0, rad(90)), color, mat, Enum.PartType.Cylinder)
+end
+local function ball(m: Model, dia: number, cf: CFrame, color: Color3, mat: Enum.Material)
+	return part(m, Vector3.new(dia, dia, dia), cf, color, mat, Enum.PartType.Ball)
+end
+local function wedge(m: Model, size: Vector3, cf: CFrame, color: Color3, mat: Enum.Material)
+	local w = Instance.new("WedgePart")
+	w.Anchored = true
+	w.Size = size
+	w.CFrame = cf
+	w.Color = color
+	w.Material = mat
+	w.Parent = m
+	return w
+end
+local function potato(m: Model, cf: CFrame, s: number)
+	local p = part(m, Vector3.new(0.34, 0.28, 0.42) * s, cf, Color3.fromRGB(128, 92, 56), Enum.Material.Ground)
+	local sm = Instance.new("SpecialMesh")
+	sm.MeshType = Enum.MeshType.Sphere
+	sm.Parent = p
+	return p
+end
+
+-- Faca: lâmina para -Z, cabo para +Z.
+local function knife(m: Model, tier: Color3, rusty: boolean, scale: number)
+	local bladeCol = if rusty then Color3.fromRGB(128, 90, 60) else METAL
+	local bladeMat = if rusty then Enum.Material.CorrodedMetal else Enum.Material.Metal
+	-- cabo com rebites e ponteira
+	part(m, Vector3.new(0.2, 0.3, 0.95), CFrame.new(0, -0.02, 0.6), WOOD, Enum.Material.Wood)
+	part(m, Vector3.new(0.22, 0.33, 0.08), CFrame.new(0, -0.02, 1.1), METAL, Enum.Material.Metal)
+	for _, z in { 0.35, 0.62, 0.89 } do
+		cylZ(m, 0.24, 0.07, CFrame.new(0, -0.02, z) * CFrame.Angles(0, rad(90), 0), STEEL, Enum.Material.Metal)
+	end
+	if rusty then
+		part(m, Vector3.new(0.23, 0.33, 0.14), CFrame.new(0, -0.02, 0.48), Color3.fromRGB(120, 116, 104), Enum.Material.Fabric)
+	end
+	-- guarda na cor da raridade
+	part(m, Vector3.new(0.26, 0.4, 0.1), CFrame.new(0, 0, 0.08), tier, Enum.Material.Metal)
+	-- lâmina + ponta + fio
+	local L = 0.8 * scale
+	local H = 0.36 * scale
+	part(m, Vector3.new(0.05, H, L), CFrame.new(0, 0.02, 0.03 - L / 2), bladeCol, bladeMat)
+	wedge(m, Vector3.new(0.05, H, 0.38 * scale), CFrame.new(0, 0.02, 0.03 - L - 0.19 * scale), bladeCol, bladeMat)
+	if not rusty then
+		part(m, Vector3.new(0.056, 0.05, L), CFrame.new(0, 0.02 - H / 2 + 0.025, 0.03 - L / 2), STEEL, Enum.Material.SmoothPlastic).Reflectance = 0.3
+	else
+		for _, z in { -0.25, -0.5, -0.7 } do
+			part(m, Vector3.new(0.06, 0.06, 0.07), CFrame.new(0, 0.02 - H / 2 + 0.02, z), DARK, Enum.Material.Slate)
+		end
+		part(m, Vector3.new(0.056, 0.1, 0.18), CFrame.new(0, 0.08, -0.4), Color3.fromRGB(150, 70, 36), Enum.Material.CorrodedMetal)
+	end
+end
+
+-- Descascador em Y: cabo emborrachado, garfo e lâmina(s) com fenda.
+local function peelerY(m: Model, tier: Color3, double: boolean)
+	cylZ(m, 1.0, 0.3, CFrame.new(0, 0, 0.62), tier, Enum.Material.SmoothPlastic)
+	for _, z in { 0.35, 0.5, 0.65, 0.8 } do
+		cylZ(m, 0.05, 0.33, CFrame.new(0, 0, z), DARK, Enum.Material.Rubber)
+	end
+	ball(m, 0.3, CFrame.new(0, 0, 1.12), tier, Enum.Material.SmoothPlastic)
+	part(m, Vector3.new(0.34, 0.12, 0.12), CFrame.new(0, 0, 1.0) * CFrame.Angles(0, 0, rad(90)), DARK, Enum.Material.SmoothPlastic, Enum.PartType.Cylinder)
+	cylZ(m, 0.22, 0.14, CFrame.new(0, 0, 0.04), STEEL, Enum.Material.Metal)
+	local a = math.atan2(0.35, 0.52)
+	for _, s in { -1, 1 } do
+		part(m, Vector3.new(0.08, 0.08, 0.63), CFrame.new(0.175 * s, 0, -0.34) * CFrame.Angles(0, -a * s, 0), STEEL, Enum.Material.Metal)
+		ball(m, 0.13, CFrame.new(0.36 * s, 0, -0.62), tier, Enum.Material.Metal)
+	end
+	local function blade(z: number, w: number)
+		part(m, Vector3.new(w, 0.03, 0.16), CFrame.new(0, 0, z), STEEL, Enum.Material.Metal).Reflectance = 0.2
+		part(m, Vector3.new(w * 0.7, 0.035, 0.03), CFrame.new(0, 0, z), DARK, Enum.Material.Metal)
+	end
+	blade(-0.62, 0.72)
+	if double then
+		for _, s in { -1, 1 } do
+			part(m, Vector3.new(0.06, 0.06, 0.2), CFrame.new(0.25 * s, 0, -0.46), STEEL, Enum.Material.Metal)
+		end
+		blade(-0.44, 0.48)
+		part(m, Vector3.new(0.32, 0.06, 0.06), CFrame.new(0, 0, -0.08), BRASS, Enum.Material.Metal)
+	end
+end
+
+local function toolModel(id: string): Model
+	local m = Instance.new("Model")
+	local tool = Config.ToolsById[id]
+	local tier = Config.TierColors[tool and tool.Tier or 1]
+	if id == "Laser" then
+		-- corpo, aletas brilhantes, lente, empunhadura, bateria e feixe
+		cylZ(m, 1.1, 0.36, CFrame.new(0, 0, 0.2), Color3.fromRGB(206, 210, 220), Enum.Material.Metal)
+		ball(m, 0.36, CFrame.new(0, 0, 0.75), Color3.fromRGB(206, 210, 220), Enum.Material.Metal)
+		for _, z in { -0.1, 0.05, 0.2 } do
+			cylZ(m, 0.04, 0.46, CFrame.new(0, 0, z), tier, Enum.Material.Neon)
+		end
+		cylZ(m, 0.24, 0.28, CFrame.new(0, 0, -0.45), DARK, Enum.Material.Metal)
+		cylZ(m, 0.04, 0.2, CFrame.new(0, 0, -0.58), Color3.fromRGB(255, 70, 60), Enum.Material.Neon)
+		local beam = cylZ(m, 0.7, 0.05, CFrame.new(0, 0, -0.95), Color3.fromRGB(255, 80, 70), Enum.Material.Neon)
+		beam.Transparency = 0.25
+		part(m, Vector3.new(0.18, 0.5, 0.24), CFrame.new(0, -0.36, 0.42) * CFrame.Angles(rad(-15), 0, 0), DARK, Enum.Material.Rubber)
+		part(m, Vector3.new(0.06, 0.14, 0.06), CFrame.new(0, -0.24, 0.22), Color3.fromRGB(255, 70, 60), Enum.Material.SmoothPlastic)
+		part(m, Vector3.new(0.22, 0.14, 0.4), CFrame.new(0, 0.22, 0.4), Color3.fromRGB(60, 62, 70), Enum.Material.Metal)
+		part(m, Vector3.new(0.14, 0.03, 0.26), CFrame.new(0, 0.3, 0.4), Color3.fromRGB(90, 230, 255), Enum.Material.Neon)
+		return m
+	end
+	if id == "DescascadorY" or id == "DescascadorDuplo" then
+		peelerY(m, tier, id == "DescascadorDuplo")
+		return m
+	end
+	if id == "LaminaVapor" then
+		knife(m, tier, false, 1.25)
+		-- caldeira de latão em cima do cabo, cano até a lâmina, manômetro e vapor
+		cylZ(m, 0.7, 0.36, CFrame.new(0, 0.36, 0.62), BRASS, Enum.Material.Metal)
+		for _, z in { 0.27, 0.97 } do
+			cylZ(m, 0.05, 0.4, CFrame.new(0, 0.36, z), Color3.fromRGB(120, 86, 40), Enum.Material.Metal)
+		end
+		cylZ(m, 0.5, 0.08, CFrame.new(0, 0.3, 0.05), BRASS, Enum.Material.Metal)
+		part(m, Vector3.new(0.06, 0.2, 0.2), CFrame.new(0.2, 0.42, 0.62), Color3.fromRGB(120, 86, 40), Enum.Material.Metal, Enum.PartType.Cylinder)
+		part(m, Vector3.new(0.02, 0.15, 0.15), CFrame.new(0.235, 0.42, 0.62), Color3.fromRGB(255, 236, 190), Enum.Material.Neon, Enum.PartType.Cylinder)
+		for i, z in { -0.2, -0.5, -0.8 } do
+			local puff = ball(m, 0.16 + i * 0.05, CFrame.new(0, 0.34 + i * 0.07, z), Color3.fromRGB(240, 240, 240), Enum.Material.SmoothPlastic)
+			puff.Transparency = 0.35 + i * 0.1
+		end
+		return m
+	end
+	knife(m, tier, id == "FacaCega", 1)
+	return m
+end
+
+-- Luva de borracha (s = -1 esquerda, 1 direita), em pé ao longo de Y.
+local function glove(m: Model, base: CFrame, s: number)
+	local col = RUBBER_Y
+	local dark = Color3.fromRGB(196, 158, 36)
+	part(m, Vector3.new(0.52, 0.56, 0.2), base * CFrame.new(0, 0.05, 0), col, Enum.Material.Plastic)
+	ball(m, 0.2, base * CFrame.new(-0.2, -0.2, 0), col, Enum.Material.Plastic)
+	ball(m, 0.2, base * CFrame.new(0.2, -0.2, 0), col, Enum.Material.Plastic)
+	local fingers = { { -0.18, 0.3 }, { -0.06, 0.36 }, { 0.06, 0.34 }, { 0.18, 0.26 } }
+	for _, f in fingers do
+		local x, len = f[1], f[2]
+		cylY(m, len, 0.13, base * CFrame.new(x, 0.33 + len / 2, 0), col, Enum.Material.Plastic)
+		ball(m, 0.13, base * CFrame.new(x, 0.33 + len, 0), col, Enum.Material.Plastic)
+	end
+	-- polegar para fora
+	local tcf = base * CFrame.new(0.3 * s, 0.12, 0.02) * CFrame.Angles(0, 0, rad(-45 * s))
+	cylY(m, 0.3, 0.14, tcf * CFrame.new(0, 0.1, 0), col, Enum.Material.Plastic)
+	ball(m, 0.14, tcf * CFrame.new(0, 0.25, 0), col, Enum.Material.Plastic)
+	-- punho largo com borda enrolada
+	part(m, Vector3.new(0.58, 0.4, 0.24), base * CFrame.new(0, -0.42, 0), dark, Enum.Material.Plastic)
+	part(m, Vector3.new(0.62, 0.12, 0.12), base * CFrame.new(0, -0.62, 0), dark, Enum.Material.Plastic, Enum.PartType.Cylinder)
+	-- textura de aderência na palma
+	for _, y in { -0.05, 0.08, 0.21 } do
+		part(m, Vector3.new(0.4, 0.03, 0.21), base * CFrame.new(0, y, 0), dark, Enum.Material.Plastic)
+	end
+end
+
+local function collectionModel(id: string): Model
+	local m = Instance.new("Model")
+	if id == "Luvas" then
+		glove(m, CFrame.new(-0.36, 0, 0.12) * CFrame.Angles(0, 0, rad(10)), -1)
+		glove(m, CFrame.new(0.36, 0.05, -0.12) * CFrame.Angles(0, 0, rad(-10)), 1)
+	elseif id == "CarrinhoMao" then
+		local tray = Color3.fromRGB(92, 104, 96)
+		part(m, Vector3.new(0.9, 0.08, 1.0), CFrame.new(0, 0.05, 0), tray, Enum.Material.CorrodedMetal)
+		for _, s in { -1, 1 } do
+			part(m, Vector3.new(0.07, 0.42, 1.1), CFrame.new(0.5 * s, 0.24, 0) * CFrame.Angles(0, 0, rad(-18 * s)), tray, Enum.Material.CorrodedMetal)
+			part(m, Vector3.new(0.09, 0.07, 1.14), CFrame.new(0.57 * s, 0.45, 0), METAL, Enum.Material.Metal)
+		end
+		wedge(m, Vector3.new(1.0, 0.42, 0.34), CFrame.new(0, 0.24, -0.66) * CFrame.Angles(0, rad(180), 0), tray, Enum.Material.CorrodedMetal)
+		part(m, Vector3.new(1.08, 0.42, 0.07), CFrame.new(0, 0.24, 0.53), tray, Enum.Material.CorrodedMetal)
+		-- roda da frente
+		part(m, Vector3.new(0.14, 0.52, 0.52), CFrame.new(0, -0.3, -0.72), DARK, Enum.Material.Rubber, Enum.PartType.Cylinder)
+		part(m, Vector3.new(0.16, 0.2, 0.2), CFrame.new(0, -0.3, -0.72), METAL, Enum.Material.Metal, Enum.PartType.Cylinder)
+		for _, s in { -1, 1 } do
+			part(m, Vector3.new(0.05, 0.05, 0.5), CFrame.new(0.1 * s, -0.12, -0.52) * CFrame.Angles(rad(-35), 0, 0), METAL, Enum.Material.Metal)
+			-- cabos e pés
+			cylZ(m, 1.1, 0.08, CFrame.new(0.36 * s, 0.0, 0.62), WOOD, Enum.Material.Wood)
+			cylZ(m, 0.22, 0.11, CFrame.new(0.36 * s, 0.0, 1.1), DARK, Enum.Material.Rubber)
+			part(m, Vector3.new(0.06, 0.36, 0.06), CFrame.new(0.3 * s, -0.2, 0.4), METAL, Enum.Material.Metal)
+		end
+		local spots = { { -0.22, 0.28, -0.2 }, { 0.2, 0.28, -0.25 }, { 0, 0.3, 0.15 }, { -0.25, 0.3, 0.3 }, { 0.24, 0.3, 0.26 }, { 0, 0.5, -0.05 } }
+		for i, p in spots do
+			potato(m, CFrame.new(p[1], p[2], p[3]) * CFrame.Angles(0, i, rad(i * 20)), 1.1)
+		end
+	elseif id == "Aspirador" then
+		local body = Color3.fromRGB(86, 96, 84)
+		cylY(m, 0.8, 0.78, CFrame.new(0, 0, 0), body, Enum.Material.CorrodedMetal)
+		cylY(m, 0.1, 0.84, CFrame.new(0, 0.44, 0), DARK, Enum.Material.Metal)
+		local dome = ball(m, 0.5, CFrame.new(0, 0.5, 0), body, Enum.Material.CorrodedMetal)
+		dome.Size = Vector3.new(0.6, 0.3, 0.6)
+		part(m, Vector3.new(0.5, 0.06, 0.08), CFrame.new(0, 0.74, 0), DARK, Enum.Material.Rubber)
+		for _, s in { -1, 1 } do
+			part(m, Vector3.new(0.06, 0.16, 0.06), CFrame.new(0.22 * s, 0.66, 0), DARK, Enum.Material.Metal)
+		end
+		-- faixa, painel e luzes
+		cylY(m, 0.05, 0.8, CFrame.new(0, -0.15, 0), BRASS, Enum.Material.Metal)
+		part(m, Vector3.new(0.26, 0.2, 0.04), CFrame.new(0, 0.12, -0.39), DARK, Enum.Material.Metal)
+		ball(m, 0.08, CFrame.new(-0.06, 0.12, -0.41), Color3.fromRGB(255, 80, 60), Enum.Material.Neon)
+		ball(m, 0.08, CFrame.new(0.06, 0.12, -0.41), Color3.fromRGB(120, 255, 120), Enum.Material.Neon)
+		for _, a in { 45, 135, 225, 315 } do
+			part(m, Vector3.new(0.08, 0.14, 0.14), CFrame.Angles(0, rad(a), 0) * CFrame.new(0, -0.44, -0.3), DARK, Enum.Material.Rubber, Enum.PartType.Cylinder)
+		end
+		-- mangueira sanfonada em arco até o bocal
+		local prev = Vector3.new(0.4, 0.1, 0)
+		for i = 1, 8 do
+			local t = i / 8
+			local p = Vector3.new(0.4 + t * 0.7, 0.1 + math.sin(t * math.pi) * 0.3 - t * 0.55, -t * 0.55)
+			local mid = (prev + p) / 2
+			cylZ(m, (p - prev).Magnitude + 0.04, 0.16, CFrame.lookAt(mid, p), if i % 2 == 0 then DARK else Color3.fromRGB(60, 58, 52), Enum.Material.Rubber)
+			prev = p
+		end
+		part(m, Vector3.new(0.5, 0.08, 0.22), CFrame.new(prev + Vector3.new(0, -0.06, -0.05)), DARK, Enum.Material.Metal)
+		potato(m, CFrame.new(prev + Vector3.new(0.05, -0.1, -0.35)), 0.9)
+	else
+		part(m, Vector3.new(1, 1, 1), CFrame.new(), Color3.fromRGB(120, 100, 80), Enum.Material.Wood)
+	end
+	return m
+end
+
+-- Máquina de verdade da esteira da minha cozinha (vem escondida: mostra as peças).
+local MACHINE_OF = { Washer = "Washer", Cutter = "Cutter", Feeder = "Feeder", AutoPeel = "AutoPeeler", Drum = "Drum", Masher = "Masher" }
+
+local function machineModel(upgradeId: string): Model?
+	local idx = player:GetAttribute("OwnKitchenIndex")
+	local K = idx and Workspace:FindFirstChild("Kitchens") and Workspace.Kitchens:FindFirstChild("Kitchen" .. idx)
+	if not K then
+		return nil
+	end
+	local src: Instance? = nil
+	if upgradeId == "Cart" then
+		src = K:FindFirstChild("Cart")
+	elseif upgradeId == "Belt" then
+		src = K:FindFirstChild("Belt")
+	elseif MACHINE_OF[upgradeId] then
+		src = K.Belt:FindFirstChild(MACHINE_OF[upgradeId])
+	end
+	if not src then
+		return nil
+	end
+	local m = Instance.new("Model")
+	for _, d in src:GetDescendants() do
+		if d:IsA("BasePart") and not d:IsDescendantOf(src:FindFirstChild("Items") or m) and d.Name ~= "BeltRoot" then
+			if upgradeId == "Belt" and (d:IsDescendantOf(src:FindFirstChild("AutoPeeler") or m) or d:IsDescendantOf(src:FindFirstChild("Washer") or m) or d:IsDescendantOf(src:FindFirstChild("Cutter") or m) or d:IsDescendantOf(src:FindFirstChild("Feeder") or m) or d:IsDescendantOf(src:FindFirstChild("Drum") or m) or d:IsDescendantOf(src:FindFirstChild("Masher") or m)) then
+				continue
+			end
+			local c = d:Clone()
+			c:ClearAllChildren()
+			c.Anchored = true
+			local base = d:GetAttribute("BaseTransparency")
+			c.Transparency = if base ~= nil then base elseif d.Transparency >= 1 then 1 else d.Transparency
+			if d.Transparency >= 1 and base == nil then
+				c:Destroy()
+			else
+				c.Parent = m
+			end
+		end
+	end
+	return if #m:GetChildren() > 0 then m else nil
+end
+
+local function themeModel(themeId: string): Model
+	local m = Instance.new("Model")
+	local th = Config.Themes[themeId] or Config.Themes.Castelo
+	local function mat(spec)
+		return (Enum.Material :: any)[spec[1]], spec[2]
+	end
+	local fm, fc = mat(th.Floor)
+	part(m, Vector3.new(2, 0.2, 2), CFrame.new(0, -0.6, 0), fc, fm)
+	local wm, wc = mat(th.Wall)
+	part(m, Vector3.new(2, 1.4, 0.2), CFrame.new(0, 0.2, 1), wc, wm)
+	local lm, lc = mat(th.Lower or th.Wall)
+	part(m, Vector3.new(2.02, 0.5, 0.22), CFrame.new(0, -0.25, 1), lc, lm)
+	part(m, Vector3.new(0.3, 0.3, 0.3), CFrame.new(0, 0.7, 0.5), th.Light, Enum.Material.Neon)
+	return m
+end
+
+-- Cria a miniatura para uma linha da loja. kind: "Tool" | "Item" | "Upgrade" | "Theme" | "Pass"
+function ItemPreview.Make(parent: GuiObject, kind: string, id: string): ViewportFrame
+	local vpf = Instance.new("ViewportFrame")
+	vpf.Name = "Preview"
+	vpf.BackgroundColor3 = Color3.fromRGB(36, 30, 26)
+	vpf.Ambient = Color3.fromRGB(165, 155, 145)
+	vpf.LightColor = Color3.fromRGB(255, 240, 220)
+	vpf.LightDirection = Vector3.new(-0.5, -1, -0.6)
+	vpf.Parent = parent
+	local model: Model? = nil
+	if kind == "Tool" then
+		model = toolModel(id)
+	elseif kind == "Item" then
+		model = collectionModel(id)
+	elseif kind == "Upgrade" then
+		model = machineModel(id)
+	elseif kind == "Theme" then
+		model = themeModel(id)
+	end
+	if not model then
+		-- sem modelo (passes etc.): um selo simples
+		local l = Instance.new("TextLabel")
+		l.Size = UDim2.fromScale(1, 1)
+		l.BackgroundTransparency = 1
+		l.Font = Enum.Font.GothamBlack
+		l.TextScaled = true
+		l.TextColor3 = Color3.fromRGB(214, 172, 74)
+		l.Text = if kind == "Pass" then "R$" else "?"
+		l.Parent = vpf
+		return vpf
+	end
+	-- ferramentas ficam inclinadas (lâmina para cima) para mostrar o perfil ao girar
+	local base = if kind == "Tool" then CFrame.Angles(rad(55), 0, rad(-12)) else CFrame.new()
+	local cf, size = model:GetBoundingBox()
+	model.WorldPivot = cf
+	model:PivotTo(base)
+	model.Parent = vpf
+	local cam = Instance.new("Camera")
+	cam.FieldOfView = 35
+	local r = size.Magnitude
+	cam.CFrame = CFrame.lookAt(Vector3.new(r * 0.9, r * 0.6, -r * 1.3), Vector3.zero)
+	cam.Parent = vpf
+	vpf.CurrentCamera = cam
+	table.insert(spinning, { Model = model, Base = base })
+	return vpf
+end
+
+function ItemPreview.Init()
+	RunService.RenderStepped:Connect(function()
+		local t = os.clock()
+		local i = 1
+		while i <= #spinning do
+			local s = spinning[i]
+			if not s.Model.Parent or not s.Model.Parent.Parent then
+				table.remove(spinning, i)
+			else
+				s.Model:PivotTo(CFrame.Angles(0, t * 0.8, 0) * s.Base)
+				i += 1
+			end
+		end
+	end)
+end
+
+return ItemPreview
