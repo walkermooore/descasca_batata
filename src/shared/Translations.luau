@@ -498,4 +498,7 @@ return {
 	{ "LAVADORA", "WASHER", "LAVADORA" },
 	{ "FRITAS", "FRIES", "FRITAS" },
 	{ "ALIMENTADOR", "FEEDER", "ALIMENTADOR" },
+	{ "Arraste a faca na casca · A/D gira · W/S inclina · tire faixa por faixa", "Drag the knife over the skin · A/D spins · W/S tilts · peel strip by strip", "Arrastra el cuchillo por la cáscara · A/D gira · W/S inclina · pela franja por franja" },
+	{ "Arraste o dedo na casca · < > gira a batata · tire faixa por faixa", "Drag your finger over the skin · < > spins the potato · peel strip by strip", "Arrastra el dedo por la cáscara · < > gira la papa · pela franja por franja" },
+	{ "Vá até a mesa e aperte Descascar. Passe a faca pela casca do jeito que quiser. Cada passada tira uma faixa: gire a batata (A/D) e vá tirando faixa por faixa.", "Go to the table and press Peel. Run the knife over the skin any way you like. Each pass removes one strip: spin the potato (A/D) and peel strip by strip.", "Ve a la mesa y pulsa Pelar. Pasa el cuchillo por la cáscara como quieras. Cada pasada quita una franja: gira la papa (A/D) y pela franja por franja." },
 }
