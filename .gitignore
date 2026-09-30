@@ -1,0 +1,9 @@
+# arquivos de auto-recuperação e travas do Studio
+*.rbxl.lock
+*.rbxlx.lock
+*_AutoRecovery_*
+# sistema
+.DS_Store
+Thumbs.db
+# Rojo
+sourcemap.json

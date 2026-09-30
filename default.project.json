@@ -1,0 +1,37 @@
+{
+  "name": "descasca_batata",
+  "tree": {
+    "$className": "DataModel",
+    "ReplicatedStorage": {
+      "Shared": {
+        "$path": "src/shared"
+      },
+      "Remotes": {
+        "$className": "Folder",
+        "BuildRequest": { "$className": "RemoteFunction" },
+        "Delivered": { "$className": "RemoteEvent" },
+        "DevRequest": { "$className": "RemoteFunction" },
+        "Notify": { "$className": "RemoteEvent" },
+        "Offer": { "$className": "RemoteEvent" },
+        "OrderAction": { "$className": "RemoteEvent" },
+        "PeelAction": { "$className": "RemoteEvent" },
+        "PeelResult": { "$className": "RemoteEvent" },
+        "PeelStroke": { "$className": "RemoteEvent" },
+        "RetentionRequest": { "$className": "RemoteFunction" },
+        "Reward": { "$className": "RemoteEvent" },
+        "ShopRequest": { "$className": "RemoteFunction" },
+        "Social": { "$className": "RemoteEvent" },
+        "SocialRequest": { "$className": "RemoteFunction" },
+        "Store": { "$className": "RemoteFunction" }
+      }
+    },
+    "ServerScriptService": {
+      "$path": "src/server"
+    },
+    "StarterPlayer": {
+      "StarterPlayerScripts": {
+        "$path": "src/client"
+      }
+    }
+  }
+}
