@@ -99,7 +99,7 @@ Config.Peel = {
 	Free = {
 		Segments = 12, -- pedaços ao longo de cada coluna (de ponta a ponta)
 		Layers = 1, -- uma passada tira a casca daquele pedaço
-		KnifeWidth = 1, -- faixas que a faca pega de uma vez (ferramentas melhores pegam mais)
+		KnifeWidth = 2, -- faixas que a faca pega de uma vez (ferramentas melhores pegam mais)
 		FinishFraction = 0.9, -- com 90% da casca tirada a batata está pronta
 		FleshPenalty = 0.005, -- cada pedaço de polpa raspado tira 0,5%
 		BadPenalty = 0.02, -- passada que foi quase só polpa tira mais 2%
@@ -111,7 +111,7 @@ Config.Peel = {
 		ChunkSeconds = 1.0, -- arrasto longo é enviado em pedaços de 1 s
 		RotateSpeed = 2.6, -- rad/s ao girar com A/D
 		TiltSpeed = 1.8, -- rad/s ao inclinar com W/S
-		MaxTilt = math.rad(40),
+		MaxTilt = math.rad(75), -- dá para virar a ponta de cima/baixo para a câmera
 	},
 }
 
@@ -129,25 +129,25 @@ Config.Delivery = {
 Config.Potatoes = {
 	-- casca terrosa e fosca (SkinMaterial) contra a polpa clara e lisa: dá para ver o que já foi descascado
 	Comum = {
-		Name = "Batata", Chance = 0.80, Strips = 20, BaseValue = 12, WorldScale = 1, CloseupA = 1.2, CloseupB = 0.8,
+		Name = "Batata", Chance = 0.80, Strips = 16, BaseValue = 12, WorldScale = 1, CloseupA = 1.2, CloseupB = 0.8,
 		SkinColor = Color3.fromRGB(112, 76, 44), SpotColor = Color3.fromRGB(58, 38, 22), FleshColor = Color3.fromRGB(190, 170, 124), SkinMaterial = "Ground",
 	},
 	Grande = {
-		Name = "Batata grande", Plural = "batatas grandes", Chance = 0.12, Strips = 26, BaseValue = 25, WorldScale = 1.5, CloseupA = 1.2, CloseupB = 1.0,
+		Name = "Batata grande", Plural = "batatas grandes", Chance = 0.12, Strips = 20, BaseValue = 25, WorldScale = 1.5, CloseupA = 1.2, CloseupB = 1.0,
 		SkinColor = Color3.fromRGB(104, 70, 42), SpotColor = Color3.fromRGB(56, 36, 22), FleshColor = Color3.fromRGB(190, 170, 124), SkinMaterial = "Ground",
 	},
 	Torta = {
-		Name = "Batata torta", Plural = "batatas tortas", Chance = 0.06, Strips = 20, BaseValue = 18, WorldScale = 1, CloseupA = 1.25, CloseupB = 0.78,
+		Name = "Batata torta", Plural = "batatas tortas", Chance = 0.06, Strips = 16, BaseValue = 18, WorldScale = 1, CloseupA = 1.25, CloseupB = 0.78,
 		WobbleAmplitude = 0.20, WobblePeriod = 1.2, -- faixa verde oscila 20% da largura, ciclo 1,2 s
 		SkinColor = Color3.fromRGB(116, 58, 40), SpotColor = Color3.fromRGB(64, 30, 22), FleshColor = Color3.fromRGB(190, 170, 124), SkinMaterial = "Ground",
 	},
 	Podre = {
-		Name = "Batata podre", Chance = 0.018, Strips = 20, BaseValue = 0, DiscardValue = 15, WorldScale = 1, CloseupA = 1.2, CloseupB = 0.8,
+		Name = "Batata podre", Chance = 0.018, Strips = 16, BaseValue = 0, DiscardValue = 15, WorldScale = 1, CloseupA = 1.2, CloseupB = 0.8,
 		-- pode ser descascada, mas a 1ª passada zera o combo e a batata passa a valer 0
 		SkinColor = Color3.fromRGB(120, 110, 130), SpotColor = Color3.fromRGB(80, 110, 60), FleshColor = Color3.fromRGB(150, 140, 110),
 	},
 	Dourada = {
-		Name = "Batata dourada", Chance = 0.002, Strips = 20, BaseValue = 400, WorldScale = 1, CloseupA = 1.2, CloseupB = 0.8,
+		Name = "Batata dourada", Chance = 0.002, Strips = 16, BaseValue = 400, WorldScale = 1, CloseupA = 1.2, CloseupB = 0.8,
 		SkinColor = Color3.fromRGB(240, 196, 60), SpotColor = Color3.fromRGB(255, 240, 150), FleshColor = Color3.fromRGB(255, 252, 240),
 	},
 }

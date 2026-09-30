@@ -1094,12 +1094,13 @@ function Peel.DebugRelease()
 	return "nada"
 end
 
-function Peel.DebugStroke(lateralPx: number?, wobblePx: number?, duration: number?, coverage: number?, holdFrac: number?, spin: number?)
+function Peel.DebugStroke(lateralPx: number?, wobblePx: number?, duration: number?, coverage: number?, holdFrac: number?, spin: number?, tilt: number?)
 	if not RunService:IsStudio() or not active or not view or stroke or finishing then
 		return "indisponível"
 	end
-	if spin then
-		view:Spin(spin) -- teste: gira a batata antes da passada (como apertar A/D)
+	if spin or tilt then
+		view:Spin(spin or 0) -- teste: gira/inclina a batata antes da passada (como A/D e W/S)
+		view:TiltBy(tilt or 0)
 		view:Update(0)
 	end
 	local top = toScreen(view.Root * Vector3.new(0, A + 0.15, 0))

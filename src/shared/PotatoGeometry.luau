@@ -7,7 +7,7 @@
 
 local Geo = {}
 
-Geo.THETA_MAX = math.rad(80) -- as pontas acima disso são "tampinhas"
+Geo.THETA_MAX = math.rad(88) -- casca até quase a ponta (só uma tampinha minúscula no bico)
 
 function Geo.StripAngle(index: number, strips: number): number
 	return (index - 1) * (2 * math.pi / strips)
