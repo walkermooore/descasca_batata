@@ -74,13 +74,13 @@ local function catalog(tab: string)
 		for i, u in Config.Upgrades do
 			local lvl = levels[u.Id] or 1
 			local now, nxt = u.Levels[lvl], u.Levels[lvl + 1]
-			local info = if nxt
-				then string.format("%s  (%s → %s %s)", u.Desc, Format.Dec(now.Value, 1), Format.Dec(nxt.Value, 1), u.Unit)
+			local info = if u.Toggle then u.Desc
+				elseif nxt then string.format("%s  (%s → %s %s)", u.Desc, Format.Dec(now.Value, 1), Format.Dec(nxt.Value, 1), u.Unit)
 				else string.format("%s  (%s %s)", u.Desc, Format.Dec(now.Value, 1), u.Unit)
 			table.insert(rows, i, {
 				Id = "Upgrade:" .. u.Id,
 				UpgradeId = u.Id,
-				Name = string.format("%s  ·  N%d", u.Name, lvl),
+				Name = if u.Toggle then u.Name else string.format("%s  ·  N%d", u.Name, lvl),
 				Desc = info,
 				Cost = nxt and nxt.Cost,
 				IsUpgrade = true,
@@ -201,7 +201,7 @@ local function row(r, order: number, ownedSet, coins: number)
 	end
 	if r.IsUpgrade then
 		if r.Done then
-			b.Text = Strings.MaxLevel
+			b.Text = if Config.UpgradesById[r.UpgradeId].Toggle then Strings.Owned else Strings.MaxLevel
 			b.BackgroundColor3 = T.Panel
 			b.TextColor3 = T.Dim
 		else

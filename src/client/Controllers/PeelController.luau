@@ -1,25 +1,15 @@
--- PeelController: o modo Descascar (seção 2.5) — descascar LIVRE.
+-- PeelController: o modo Descascar (seção 2.5) — descascar LIVRE, como no Potato Please.
 --
--- A faca tira a casca por onde passar, em qualquer direção; a batata gira com A/D, setas,
--- roda do mouse, botão direito arrastando ou os botões na tela (celular).
--- Minigame: a faixa verde. Percorrê-la de ponta a ponta = PERFEITA (combo e bônus).
--- Errar não impede de descascar: raspar polpa (passar onde já não tem casca) só tira pontos.
+-- A faca tira uma tira de casca por onde passar, em qualquer direção. A casca tem camadas:
+-- cada passada num pedaço tira uma camada (a casca escura, depois a de baixo); para chegar na
+-- polpa é preciso passar de novo. A batata gira com A/D (e inclina com W/S), roda do mouse,
+-- botão direito arrastando ou os botões na tela (celular). Sem minigame: passar onde já não
+-- tem casca raspa a polpa e só tira pontos; passadas limpas seguidas sobem o combo.
 -- Com 90% da casca fora a batata fica pronta e vai para a mão (ou direto para a esteira).
 --
--- Como a precisão do minigame é medida:
---   Cada posição do dedo/mouse vira um raio da câmera que é cruzado analiticamente com o
---   elipsóide da batata. Do ponto atingido tiramos theta (altura ao longo da faixa) e a
---   distância lateral até o meridiano central da faixa. A amostra está "dentro" se a distância
---   lateral for menor que a meia-largura da faixa verde.
---   As amostras são registradas a cada frame e interpoladas entre frames, com peso igual à
---   distância percorrida na tela: assim a precisão não depende do FPS do aparelho, e ficar
---   parado não conta. Toques fora da batata antes do primeiro contato e depois do último
---   são ignorados (entrar e sair pela ponta é natural).
---   Cobertura = trecho de theta coberto sobre a faixa / comprimento total da faixa.
---   No controle, o analógico direito mapeia direto para (theta, lateral).
---
--- O cliente prevê o resultado (mesmo PeelMath do servidor) para a resposta ser instantânea;
--- o servidor confirma ou corrige.
+-- Cada posição do dedo/mouse vira um raio da câmera cruzado com o elipsóide da batata; as
+-- posições entre dois frames são interpoladas, então a faca não "pula" pedaços com FPS baixo.
+-- O cliente prevê o resultado na hora; o servidor confirma ou corrige.
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -57,6 +47,7 @@ local total = 80 -- pedaços de casca
 local predictedRemoved = 0 -- pedaços já tirados (previsão local)
 local pending: { [number]: { number } } = {} -- seq -> pedaços cortados, até o servidor confirmar
 local spinInput = 0 -- -1/0/1 (teclas e botões)
+local tiltInput = 0 -- -1/0/1 (W/S)
 local spinButtons = 0
 local rightDrag = false
 local lastCrunch = 0
@@ -280,26 +271,8 @@ local function popup(text: string, color: Color3, world: Vector3, size: number, 
 	Debris:AddItem(l, 0.9)
 end
 
-local meterToken = 0
-local function showMeter(precision: number, final: string?)
-	ui.Meter.Visible = true
-	ui.Fill.Size = UDim2.fromScale(math.clamp(precision, 0, 1), 1)
-	local color = if precision >= cfg.Results.Perfect.MinPrecision
-		then RESULT_COLOR.Perfect
-		elseif precision >= cfg.Results.Good.MinPrecision then RESULT_COLOR.Good
-		else RESULT_COLOR.Bad
-	ui.Fill.BackgroundColor3 = color
-	ui.MeterLabel.Text = string.format(Strings.Precision, math.floor(precision * 100 + 0.5))
-	ui.MeterLabel.TextColor3 = color
-	if final then
-		meterToken += 1
-		local my = meterToken
-		task.delay(0.9, function()
-			if my == meterToken and not stroke then
-				ui.Meter.Visible = false
-			end
-		end)
-	end
+local function showMeter(_precision: number, _final: string?)
+	ui.Meter.Visible = false -- sem minigame: não há medidor de precisão
 end
 
 local function refreshHint()
@@ -324,9 +297,9 @@ local function greenFrac(): number
 	return PeelMath.GreenWidth(player:GetAttribute("ToolId"), player:GetAttribute("Assisted") == true, C.Tutorial.IsFirstPotato())
 end
 
--- mão animada mostrando o gesto nas 2 primeiras faixas do tutorial
+-- (a mão animada do tutorial mostrava o gesto da faixa verde; sem minigame ela não aparece)
 local function handVisible(): boolean
-	return view ~= nil and C.Tutorial.IsFirstPotato() and strokesThisPotato < Config.Tutorial.HandStrips and not stroke
+	return false
 end
 
 -- Ponto (local) da batata sob o dedo/mouse, ou nil.
@@ -338,14 +311,14 @@ end
 -- Controle: o analógico direito percorre a faixa verde (theta) com desvio lateral.
 local function stickPoint(v: Vector2): Vector3
 	local theta = math.asin(math.clamp(v.Y, -1, 1) * 0.985)
-	return Geo.FromMeasure(theta, math.clamp(v.X, -1, 1) * view:HalfStrip() * 2, view:TargetPhi(), A, B)
+	return Geo.FromMeasure(theta, math.clamp(v.X, -1, 1) * B * 0.8, view:FrontPhi(), A, B)
 end
 
 local function stickScreen(v: Vector2): Vector2
 	return toScreen(view.Root * stickPoint(v))
 end
 
--- A lâmina tira os pedaços de casca sob ela (ferramentas largas tiram faixas vizinhas juntas).
+-- A lâmina tira uma camada de cada pedaço sob ela (ferramentas melhores são mais largas).
 -- Passar onde já não tem casca raspa polpa (conta para perder pontos).
 local function knifeCut(hit: Vector3)
 	local s = stroke
@@ -353,18 +326,21 @@ local function knifeCut(hit: Vector3)
 	if not id then
 		return
 	end
-	local width = PeelMath.ToolFor(player:GetAttribute("ToolId")).StripsPerStroke
+	local width = Config.Peel.Free.KnifeWidth + PeelMath.ToolFor(player:GetAttribute("ToolId")).StripsPerStroke - 1
 	for n = 0, width - 1 do
 		local off = n - math.floor((width - 1) / 2)
 		local pid = view:Id(i + off, j)
-		if view:CutPatch(pid, C.Effects.Folder(), cfg.StripDebrisLifetime) then
+		if s.CutSet[pid] then
+			continue -- cada passada tira no máximo uma camada de cada pedaço
+		end
+		if view:HitPatch(pid, C.Effects.Folder(), cfg.StripDebrisLifetime) then
 			s.CutSet[pid] = true
 			table.insert(s.Cut, pid)
 			if os.clock() - lastCrunch > 0.05 then
 				lastCrunch = os.clock()
 				C.Effects.Play("Crunch", 1.3 + math.random() * 0.3, 0.25)
 			end
-		elseif off == 0 and not s.CutSet[pid] and not s.Scraped[pid] then
+		elseif off == 0 and not s.Scraped[pid] and view:IsBare(pid) then
 			s.Scraped[pid] = true
 			s.Flesh += 1
 		end
@@ -374,25 +350,11 @@ end
 local function addSample(hit: Vector3?, weight: number)
 	local s = stroke
 	if hit == nil then
-		if s.HasHit then
-			s.PendingMiss += weight
-		end
 		return
 	end
-	knifeCut(hit)
-	-- minigame: quanto da passada ficou dentro da faixa verde
-	local theta, lateral = Geo.Measure(hit, A, B, view:TargetPhi())
 	s.HasHit = true
-	s.Total += s.PendingMiss + weight
-	s.PendingMiss = 0
-	local lat = math.abs(lateral)
-	if lat <= view:HalfGreen() then
-		s.Inside += weight
-	end
-	if lat <= view:HalfStrip() * 1.6 then
-		s.MinT = math.min(s.MinT, theta)
-		s.MaxT = math.max(s.MaxT, theta)
-	end
+	s.Total += weight
+	knifeCut(hit)
 end
 
 -- ---------------------------------------------------------------- ferramenta na mão
@@ -486,7 +448,7 @@ local function updateKnife()
 		end
 	else
 		-- toque sem dedo na tela: a ferramenta espera na ponta de cima da faixa
-		local pLocal = Geo.Surface(math.rad(70), view:TargetPhi(), A, B)
+		local pLocal = Geo.Surface(math.rad(55), view:FrontPhi(), A, B)
 		contact = view.Root * pLocal
 		normal = view.Root:VectorToWorldSpace(surfaceNormal(pLocal))
 	end
@@ -670,20 +632,12 @@ local function commitStroke(s)
 		return -- só passou no ar
 	end
 	local duration = math.clamp(os.clock() - s.Start, Config.Peel.Free.MinDuration, Config.Peel.Free.MaxDuration)
-	local precision = if s.Total > 0 then s.Inside / s.Total else 0
-	local coverage = if s.MaxT >= s.MinT then (s.MaxT - s.MinT) / math.pi else 0
-	local onTarget = 0
-	for _, id in cut do
-		if math.ceil(id / SEG) == view.Current then
-			onTarget += 1
-		end
-	end
 	local assisted = player:GetAttribute("Assisted") == true
-	-- mesmas regras do servidor: PERFEITA = seguiu a faixa verde; RUIM = quase só polpa
+	-- mesmas regras do servidor: LIMPA sobe o combo; RUIM (quase só polpa) zera
 	local result
-	if precision >= cfg.Results.Perfect.MinPrecision and coverage >= cfg.MinCoverage and onTarget >= math.ceil(SEG * 0.5) then
+	if #cut >= Config.Peel.Free.CleanMinHits and s.Flesh == 0 then
 		result = "Perfect"
-	elseif #cut == 0 or s.Flesh > #cut * 2 then
+	elseif #cut == 0 or s.Flesh > #cut then
 		result = "Bad"
 	else
 		result = "Good"
@@ -692,44 +646,35 @@ local function commitStroke(s)
 		localCombo = 0
 	end
 	localCombo = PeelMath.NextCombo(localCombo, result, assisted)
-	local rottenNow = ptype == "Podre" and predictedRemoved == 0
+	local rottenNow = ptype == "Podre" and predictedRemoved == 0 and strokesThisPotato == 0
 	if rottenNow then
 		localCombo = 0
 	end
 	strokesThisPotato += 1
 	lastStrokeClock = os.clock()
-	local tool = PeelMath.ToolFor(player:GetAttribute("ToolId"))
-	local _mult, tier = PeelMath.ComboMultiplier(localCombo, tool.Tier)
 
 	local mid = view.Root.Position
 	local out = -camera.CFrame.LookVector
-	local pitch = cfg.ComboPitchStep ^ (tier - 1)
-	if result == "Perfect" then
-		C.Effects.Play("Crunch", 1.15 * pitch, 1)
-		C.Effects.Burst(mid, "Perfect", out)
-		C.Effects.Haptic(0.6, 0.08)
-		popup(RESULT_TEXT.Perfect, RESULT_COLOR.Perfect, view.Root * Vector3.new(B + 1.1, 0.4, 0), 44, 30)
-	elseif result == "Bad" then
+	if result == "Bad" then
 		C.Effects.Play("Squish", 0.85, 1)
 		fleshChunk(mid, out)
-		shake(0.12, 0.04)
-		popup(Strings.FleshScraped, RESULT_COLOR.Bad, view.Root * Vector3.new(B + 1.1, 0.4, 0), 34, 30)
-	elseif s.Flesh > 0 then
+		shake(0.1, 0.03)
+	end
+	if s.Flesh > 0 then
 		popup(Strings.FleshScraped, RESULT_COLOR.Bad, view.Root * Vector3.new(B + 1.1, 0.4, 0), 26, 24)
 	end
 	if rottenNow then
 		C.Effects.Play("Squish", 0.7, 1)
 		popup(Strings.RottenPeeled, RESULT_COLOR.Bad, view.Root * Vector3.new(-B - 1.1, 0.4, 0), 40, 30)
 	end
-	showMeter(precision, result)
 
 	seq += 1
 	pending[seq] = cut
-	Remotes.PeelStroke:FireServer(seq, cut, s.Flesh, duration, precision, coverage)
+	Remotes.PeelStroke:FireServer(seq, cut, s.Flesh, duration)
 	validStrokes += 1
 	refreshHint()
 
-	predictedRemoved += #cut
+	predictedRemoved = view:RemovedCount()
 	ui.StripLabel.Text = progressText()
 	if predictedRemoved >= total * Config.Peel.Free.FinishFraction and not finishing then
 		startFinish()
@@ -806,9 +751,8 @@ local function onResult(r)
 			warn("[Peel] servidor rejeitou:", r.Reason)
 		end
 		localCombo = r.Combo or 0
-		predictedRemoved = r.Removed or predictedRemoved
 		if finishing and not finishing.Flying then
-			-- a batata "terminou" só na previsão: volta para a mesa como estava
+			-- a batata "terminou" só na previsão: volta como estava
 			finishing = nil
 			local K = C.Kitchen.GetMine()
 			if K and active then
@@ -819,11 +763,9 @@ local function onResult(r)
 			if r.Cut then
 				view:SyncMask(r.Cut)
 			elseif mine then
-				view:RestorePatches(mine)
+				view:UndoHits(mine)
 			end
-			if r.Target then
-				view:SetTarget(r.Target)
-			end
+			predictedRemoved = view:RemovedCount()
 			ui.StripLabel.Text = progressText()
 		end
 		return
@@ -836,9 +778,6 @@ local function onResult(r)
 		end
 		lastMult = r.ComboMult
 	end
-	if view and r.Result == "Perfect" and r.Gain and r.Gain > 0 then
-		popup("+" .. Format.Coins(r.Gain), C.HUD.Theme.Gold, view.Root * Vector3.new(B + 1.1, -0.2, 0), 26, 36)
-	end
 	if r.Done then
 		if finishing then
 			finishing.Result = r
@@ -848,20 +787,6 @@ local function onResult(r)
 			startFinish()
 			finishing.Result = r
 		end
-		return
-	end
-	if view and r.Target and r.Target ~= view.Current then
-		view:SetGreenFrac(greenFrac())
-		view:SetTarget(r.Target)
-		if r.Result == "Perfect" then
-			-- recompensa da PERFEITA: a batata já vira para a próxima faixa verde
-			local tool = PeelMath.ToolFor(player:GetAttribute("ToolId"))
-			view:RotateTo(r.Target, (tool.RotateTime or cfg.StripRotateTime) * 2.5)
-		end
-	end
-	if next(pending) == nil and not stroke and r.Removed then
-		predictedRemoved = math.max(predictedRemoved, r.Removed)
-		ui.StripLabel.Text = progressText()
 	end
 end
 
@@ -895,15 +820,13 @@ local function update(dt: number)
 	setCharacterHidden(true)
 
 	if view then
-		local def = Config.Potatoes[ptype]
-		if def.WobbleAmplitude then
-			local stripAngle = 2 * math.pi / strips
-			view:SetGreenOffset(def.WobbleAmplitude * stripAngle * math.sin(2 * math.pi * os.clock() / def.WobblePeriod))
-		end
 		-- girar a batata (teclas A/D, setas, botões na tela, analógico esquerdo)
 		local spin = spinInput + spinButtons
 		if spin ~= 0 then
 			view:Spin(math.clamp(spin, -1, 1) * Config.Peel.Free.RotateSpeed * dt)
+		end
+		if tiltInput ~= 0 then
+			view:TiltBy(tiltInput * Config.Peel.Free.TiltSpeed * dt)
 		end
 		view:Update(dt)
 
@@ -922,7 +845,6 @@ local function update(dt: number)
 				else
 					stepStick(stick)
 				end
-				showMeter(currentPrecision())
 			end
 		end
 
@@ -975,11 +897,9 @@ function buildView(K): Vector3
 		Type = ptype,
 		Strips = strips,
 		Cut = player:GetAttribute("HeldCut"),
-		Target = player:GetAttribute("HeldTarget") or 1,
 		A = A,
 		B = B,
 		BaseCF = CFrame.lookAt(potatoPos, camPos),
-		GreenFrac = greenFrac(),
 		Parent = C.Effects.Folder(),
 		Seed = viewId or 1,
 	})
@@ -1174,9 +1094,13 @@ function Peel.DebugRelease()
 	return "nada"
 end
 
-function Peel.DebugStroke(lateralPx: number?, wobblePx: number?, duration: number?, coverage: number?, holdFrac: number?)
+function Peel.DebugStroke(lateralPx: number?, wobblePx: number?, duration: number?, coverage: number?, holdFrac: number?, spin: number?)
 	if not RunService:IsStudio() or not active or not view or stroke or finishing then
 		return "indisponível"
+	end
+	if spin then
+		view:Spin(spin) -- teste: gira a batata antes da passada (como apertar A/D)
+		view:Update(0)
 	end
 	local top = toScreen(view.Root * Vector3.new(0, A + 0.15, 0))
 	local bottom = toScreen(view.Root * Vector3.new(0, -A - 0.15, 0))
@@ -1242,6 +1166,7 @@ function Peel.Init(controllers)
 			return
 		elseif input.KeyCode == Enum.KeyCode.Thumbstick1 then
 			spinInput = if math.abs(input.Position.X) > 0.3 then math.sign(input.Position.X) else 0
+			tiltInput = if math.abs(input.Position.Y) > 0.3 then -math.sign(input.Position.Y) else 0
 		elseif input.UserInputType == Enum.UserInputType.MouseWheel then
 			view:Spin(input.Position.Z * 0.3)
 		elseif input.UserInputType == Enum.UserInputType.MouseMovement and rightDrag then
@@ -1250,19 +1175,22 @@ function Peel.Init(controllers)
 	end)
 	-- girar com teclado: A/D ou setas
 	local SPIN_KEYS = { [Enum.KeyCode.A] = -1, [Enum.KeyCode.Left] = -1, [Enum.KeyCode.D] = 1, [Enum.KeyCode.Right] = 1 }
+	local TILT_KEYS = { [Enum.KeyCode.W] = -1, [Enum.KeyCode.Up] = -1, [Enum.KeyCode.S] = 1, [Enum.KeyCode.Down] = 1 }
 	local held = {}
 	local function refreshSpin()
-		local v = 0
+		local v, t = 0, 0
 		for k in held do
-			v += SPIN_KEYS[k]
+			v += SPIN_KEYS[k] or 0
+			t += TILT_KEYS[k] or 0
 		end
 		spinInput = math.clamp(v, -1, 1)
+		tiltInput = math.clamp(t, -1, 1)
 	end
 	UserInputService.InputBegan:Connect(function(input, processed)
 		if processed or not active then
 			return
 		end
-		if SPIN_KEYS[input.KeyCode] then
+		if SPIN_KEYS[input.KeyCode] or TILT_KEYS[input.KeyCode] then
 			held[input.KeyCode] = true
 			refreshSpin()
 		elseif input.UserInputType == Enum.UserInputType.MouseButton2 then
@@ -1270,7 +1198,7 @@ function Peel.Init(controllers)
 		end
 	end)
 	UserInputService.InputEnded:Connect(function(input)
-		if SPIN_KEYS[input.KeyCode] then
+		if SPIN_KEYS[input.KeyCode] or TILT_KEYS[input.KeyCode] then
 			held[input.KeyCode] = nil
 			refreshSpin()
 		elseif input.UserInputType == Enum.UserInputType.MouseButton2 then

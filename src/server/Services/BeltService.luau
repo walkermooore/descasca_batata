@@ -71,6 +71,14 @@ function BeltService.BuyUpgrade(player: Player, id: any)
 	return { Ok = true, Level = lvl + 1 }
 end
 
+-- Lavadora (+% de valor) e cortador de fritas (x valor) valem para toda batata da esteira.
+function BeltService.ValueMultiplier(player: Player?): number
+	if not player then
+		return 1
+	end
+	return (1 + BeltService.UpgradeValue(player, "Washer") / 100) * BeltService.UpgradeValue(player, "Cutter")
+end
+
 -- ---------------------------------------------------------------- caminho
 
 local function pathOf(K): ({ Vector3 }, number)
@@ -154,8 +162,28 @@ end
 
 -- ---------------------------------------------------------------- descascador automático
 
+local function showMachine(model: Instance?, on: boolean)
+	if not model then
+		return
+	end
+	model:SetAttribute("Active", on)
+	for _, d in model:GetDescendants() do
+		if d:IsA("BasePart") then
+			d.Transparency = if on then (d:GetAttribute("BaseTransparency") or 0) else 1
+			d.CanCollide = on and d:GetAttribute("Solid") == true
+		elseif d:IsA("SurfaceGui") or d:IsA("Light") or d:IsA("ParticleEmitter") then
+			d.Enabled = on
+		end
+	end
+end
+
 function BeltService.Refresh(K)
 	K.Model:SetAttribute("BeltSpeed", BeltService.UpgradeValue(K.Owner, "Belt"))
+	local owner = K.Owner
+	showMachine(K.Belt:FindFirstChild("Washer"), owner ~= nil and BeltService.UpgradeValue(owner, "Washer") > 0)
+	showMachine(K.Belt:FindFirstChild("Cutter"), owner ~= nil and BeltService.UpgradeValue(owner, "Cutter") > 1)
+	showMachine(K.Belt:FindFirstChild("Feeder"), owner ~= nil and BeltService.UpgradeValue(owner, "Feeder") > 0)
+	K.Model:SetAttribute("CutterOn", owner ~= nil and BeltService.UpgradeValue(owner, "Cutter") > 1)
 	local auto = K.Belt:FindFirstChild("AutoPeeler")
 	if not auto then
 		return
@@ -192,7 +220,7 @@ function BeltService.AutoCoinsPerMinute(player: Player): number
 	local d = Config.Delivery
 	local speed = S.Monetization.SpeedMultiplier(player)
 	local cartMax = cap / ((d.CartTravelTime + d.CartReturnTime) / speed) * 60
-	return math.min(rate, cartMax) * autoValue(player)
+	return math.min(rate, cartMax) * autoValue(player) * BeltService.ValueMultiplier(player)
 end
 
 -- ---------------------------------------------------------------- tick
@@ -220,6 +248,11 @@ local function tickKitchen(K, dt: number)
 	while i <= #st.Items do
 		local it = st.Items[i]
 		if now >= it.T0 + it.Dur then
+			if not it.Boosted then
+				-- passou pela lavadora e pelo cortador: vale mais
+				it.Boosted = true
+				it.Item.Value *= BeltService.ValueMultiplier(K.Owner)
+			end
 			if waiting == 0 and S.Kitchen.AddToCart(K, it.Item) then
 				it.Part:Destroy()
 				table.remove(st.Items, i)

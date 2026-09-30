@@ -1,7 +1,7 @@
 -- PeelService: autoridade do descascar (seções 2.4, 2.5, 2.7 e 2.12).
--- Descascar livre: a casca é uma grade de pedaços (faixas x Config.Peel.Free.Segments).
--- O cliente diz quais pedaços a faca tirou em cada passada e se a passada seguiu a faixa
--- verde (minigame); o servidor valida (pedaços válidos, ritmo, distância da mesa, relógio)
+-- Descascar livre: a casca é uma grade de pedaços (colunas x Segments), cada um com Layers camadas.
+-- O cliente diz em quais pedaços a faca passou (cada passada tira uma camada) e quanta polpa
+-- raspou; o servidor valida (pedaços válidos, ritmo, distância da mesa, relógio)
 -- e calcula rendimento, combo e valor. Com 90% da casca tirada a batata fica pronta e vai
 -- para a mão (descascada), para o jogador colocar na esteira.
 --
@@ -91,6 +91,7 @@ end
 -- ---------------------------------------------------------------- batatas
 
 local SEG = Config.Peel.Free.Segments
+local LAYERS = Config.Peel.Free.Layers
 
 local function newPotato(K, ptype: string)
 	nextId += 1
@@ -100,10 +101,9 @@ local function newPotato(K, ptype: string)
 		Type = ptype,
 		Strips = def.Strips,
 		Total = def.Strips * SEG, -- pedaços de casca
-		Cut = {}, -- id do pedaço -> true
-		Removed = 0, -- pedaços tirados
-		Penalty = 0, -- rendimento perdido raspando polpa / passadas ruins
-		Target = rng:NextInteger(1, def.Strips), -- faixa verde do minigame
+		Hits = {}, -- id -> camadas já tiradas (0..LAYERS)
+		Removed = 0, -- pedaços tirados por completo
+		Penalty = 0, -- rendimento perdido raspando polpa
 		Peeled = false,
 		Spoiled = false,
 		Kitchen = K,
@@ -121,30 +121,13 @@ local function paintProgress(P)
 	end
 end
 
--- Máscara "0101..." dos pedaços já tirados (o close reconstrói a batata do jeito que ficou).
+-- Máscara com as camadas tiradas de cada pedaço ("0120..."): o close reconstrói a batata.
 local function cutMask(P): string
 	local t = table.create(P.Total, "0")
-	for id in P.Cut do
-		t[id] = "1"
+	for id, h in P.Hits do
+		t[id] = tostring(h)
 	end
 	return table.concat(t)
-end
-
--- Próxima faixa verde: a que ainda tem mais casca.
-local function pickTarget(P)
-	local best, bestLeft = P.Target, -1
-	for i = 1, P.Strips do
-		local left = 0
-		for j = 1, SEG do
-			if not P.Cut[(i - 1) * SEG + j] then
-				left += 1
-			end
-		end
-		if left > bestLeft + (if i == P.Target then 0 else 0.5) then
-			best, bestLeft = i, left
-		end
-	end
-	P.Target = best
 end
 
 local function decorate(P, part: Part)
@@ -242,7 +225,6 @@ local function publishHands(player: Player)
 	player:SetAttribute("HeldRemoved", P and P.Removed or nil)
 	player:SetAttribute("HeldTotal", P and P.Total or nil)
 	player:SetAttribute("HeldCut", P and cutMask(P) or nil)
-	player:SetAttribute("HeldTarget", P and P.Target or nil)
 	player:SetAttribute("HeldPeeled", P and P.Peeled or nil)
 	player:SetAttribute("ExtraHeld", s and s.Extra and s.Extra.Type or nil)
 end
@@ -340,8 +322,13 @@ local function popNext(player: Player, K)
 		s.Extra = nil
 		return P
 	end
-	if s.Stock > 0 then
-		S.Session.SetStock(player, s.Stock - 1)
+	local feeder = S.Belt.UpgradeValue(player, "Feeder") > 0
+	if s.Stock > 0 or feeder then
+		if s.Stock > 0 then
+			S.Session.SetStock(player, s.Stock - 1)
+		else
+			S.Kitchen.TakeFromPile(K) -- alimentador automático: a calha puxa do monte
+		end
 		local data = S.Data.Get(player)
 		if data then
 			data.Stats.PotatoesPicked += 1
@@ -652,7 +639,7 @@ local function finishPotato(player: Player, s, P, K, combo: number, comboMult: n
 	}
 	-- a casca que sobrou (menos de 10%) sai junto
 	for id = 1, P.Total do
-		P.Cut[id] = true
+		P.Hits[id] = LAYERS
 	end
 	P.Removed = P.Total
 	paintProgress(P)
@@ -665,7 +652,7 @@ local function finishPotato(player: Player, s, P, K, combo: number, comboMult: n
 	end
 	S.Bus.Fire("PotatoFinished", player, { Type = P.Type, AvgYield = yield, Value = value, Combo = combo, Spoiled = P.Spoiled })
 
-	local autoBelt = s.Extra ~= nil or s.Stock > 0 or S.Session.HasItem(player, "Luvas")
+	local autoBelt = s.Extra ~= nil or s.Stock > 0 or S.Session.HasItem(player, "Luvas") or S.Belt.UpgradeValue(player, "Feeder") > 0
 	if autoBelt and S.Belt.Push(K, P.Item) then
 		local belt = K.Belt:FindFirstChild("BeltRoot")
 		local dest = if belt and belt:FindFirstChild("P1") then (belt :: any).P1.WorldPosition else K.TableTop.Position
@@ -682,15 +669,13 @@ local function finishPotato(player: Player, s, P, K, combo: number, comboMult: n
 end
 
 -- Passada do descascar livre.
---   cut: ids dos pedaços que a faca tirou (o cliente já tirou na tela; o servidor confirma)
+--   cut: ids dos pedaços em que a faca passou nesta passada (cada um perde uma camada)
 --   flesh: quantos pedaços de polpa a faca raspou (onde já não tinha casca) -> perde rendimento
---   precision/coverage: quanto da passada seguiu a faixa verde (minigame -> PERFEITA)
-local function onStroke(player: Player, seq: any, cut: any, flesh: any, duration: any, precision: any, coverage: any, auto: any)
-	if typeof(seq) ~= "number" or typeof(cut) ~= "table" or typeof(flesh) ~= "number" or typeof(duration) ~= "number"
-		or typeof(precision) ~= "number" or typeof(coverage) ~= "number" then
+local function onStroke(player: Player, seq: any, cut: any, flesh: any, duration: any, auto: any)
+	if typeof(seq) ~= "number" or typeof(cut) ~= "table" or typeof(flesh) ~= "number" or typeof(duration) ~= "number" then
 		return
 	end
-	if precision ~= precision or duration ~= duration or coverage ~= coverage or flesh ~= flesh then
+	if duration ~= duration or flesh ~= flesh then
 		return -- NaN
 	end
 	local s = S.Session.Get(player)
@@ -707,7 +692,7 @@ local function onStroke(player: Player, seq: any, cut: any, flesh: any, duration
 		if Config.Dev.DebugPeel then
 			print("[Peel] rejeitada", player.Name, reason)
 		end
-		reply(player, { Seq = seq, Ok = false, Reason = reason, Removed = P.Removed, Total = P.Total, Cut = cutMask(P), Target = P.Target, Combo = s.Combo })
+		reply(player, { Seq = seq, Ok = false, Reason = reason, Removed = P.Removed, Total = P.Total, Cut = cutMask(P), Combo = s.Combo })
 	end
 
 	-- ritmo: passadas por segundo
@@ -740,16 +725,19 @@ local function onStroke(player: Player, seq: any, cut: any, flesh: any, duration
 		return reject("NoPass")
 	end
 
-	-- pedaços válidos e novos; limite por passada e por segundo (anti-script)
-	local maxPerStroke = tool.StripsPerStroke * SEG * 3 + 6
-	if #cut > maxPerStroke then
+	-- pedaços válidos (cada um no máximo uma vez por passada); limites anti-script
+	local width = free.KnifeWidth + tool.StripsPerStroke - 1
+	if #cut > width * SEG * 3 + 8 then
 		return reject("TooMany")
 	end
-	local accepted = {}
+	local seen = {}
+	local hits = {}
 	for _, id in cut do
-		if typeof(id) == "number" and id == math.floor(id) and id >= 1 and id <= P.Total and not P.Cut[id] then
-			P.Cut[id] = true
-			table.insert(accepted, id)
+		if typeof(id) == "number" and id == math.floor(id) and id >= 1 and id <= P.Total and not seen[id] then
+			seen[id] = true
+			if (P.Hits[id] or 0) < LAYERS then
+				table.insert(hits, id)
+			end
 		end
 	end
 	s.PatchWindow = s.PatchWindow or {}
@@ -766,31 +754,29 @@ local function onStroke(player: Player, seq: any, cut: any, flesh: any, duration
 	for _, e in pw do
 		recent += e.N
 	end
-	if recent + #accepted > free.MaxPatchesPerSecond then
-		for _, id in accepted do
-			P.Cut[id] = nil
-		end
+	if recent + #hits > free.MaxPatchesPerSecond then
 		return reject("Rate")
 	end
-	table.insert(pw, { T = now, N = #accepted })
-	P.Removed += #accepted
-
-	-- resultado: PERFEITA = seguiu a faixa verde de ponta a ponta; RUIM = quase só polpa
-	precision = math.clamp(precision, 0, 1)
-	flesh = math.clamp(math.floor(flesh), 0, 200)
-	watchBot(player, s, precision, duration)
-	local onTarget = 0
-	for _, id in accepted do
-		if math.ceil(id / SEG) == P.Target then
-			onTarget += 1
+	table.insert(pw, { T = now, N = #hits })
+	local removedNow = 0
+	for _, id in hits do
+		local h = (P.Hits[id] or 0) + 1
+		P.Hits[id] = h
+		if h >= LAYERS then
+			removedNow += 1
 		end
 	end
+	P.Removed += removedNow
+
+	-- resultado: LIMPA = tirou casca sem raspar polpa (sobe o combo); RUIM = quase só polpa
+	flesh = math.clamp(math.floor(flesh), 0, 400)
+	watchBot(player, s, if flesh == 0 then 1 else 0, duration)
 	local result
 	if isAuto then
 		result = "Good"
-	elseif precision >= cfg.Results.Perfect.MinPrecision and coverage >= cfg.MinCoverage and onTarget >= math.ceil(SEG * 0.5) then
+	elseif #hits >= free.CleanMinHits and flesh == 0 then
 		result = "Perfect"
-	elseif #accepted == 0 or flesh > #accepted * 2 then
+	elseif #hits == 0 or flesh > #hits then
 		result = "Bad"
 	else
 		result = "Good"
@@ -826,18 +812,13 @@ local function onStroke(player: Player, seq: any, cut: any, flesh: any, duration
 	S.Bus.Fire("ComboChanged", player, combo)
 	S.Bus.Fire("StrokeResult", player, result)
 	local yieldNow = math.clamp(1 - P.Penalty, free.MinYield, 1)
-	S.Bus.Fire("StripsPeeled", player, #accepted / SEG, yieldNow) -- corrida e rankings
-	if result == "Perfect" then
-		pickTarget(P) -- nova faixa verde
-	end
+	S.Bus.Fire("StripsPeeled", player, removedNow / SEG, yieldNow) -- corrida e rankings
 
 	local compost = 0
-	if tool.CompostPerStrip and #accepted > 0 then
-		compost = S.Economy.Add(player, tool.CompostPerStrip * #accepted / SEG, "Compost")
+	if tool.CompostPerStrip and removedNow > 0 then
+		compost = S.Economy.Add(player, tool.CompostPerStrip * removedNow / SEG, "Compost")
 	end
 
-	local def = Config.Potatoes[P.Type]
-	local baseValue = if P.Spoiled then 0 else def.BaseValue
 	local data = {
 		Seq = seq,
 		Ok = true,
@@ -845,15 +826,12 @@ local function onStroke(player: Player, seq: any, cut: any, flesh: any, duration
 		Result = result,
 		Rotten = rotten,
 		Yield = yieldNow,
-		Precision = precision,
 		Combo = combo,
 		ComboMult = comboMult,
 		ComboTier = comboTier,
-		Accepted = #accepted,
+		Hits = #hits,
 		Removed = P.Removed,
 		Total = P.Total,
-		Target = P.Target,
-		Gain = baseValue * yieldNow * #accepted / P.Total * comboMult * PeelService.PermanentMultiplier(player),
 		Compost = compost,
 		Done = false,
 	}
@@ -867,11 +845,10 @@ local function onStroke(player: Player, seq: any, cut: any, flesh: any, duration
 		data.Reward = reward
 	else
 		player:SetAttribute("HeldRemoved", P.Removed)
-		player:SetAttribute("HeldTarget", P.Target)
 		paintProgress(P)
 	end
 	if Config.Dev.DebugPeel then
-		print(string.format("[Peel] %s %s %s cut=%d flesh=%d prec=%.2f combo=%d %d/%d", player.Name, P.Type, result, #accepted, flesh, precision, combo, P.Removed, P.Total))
+		print(string.format("[Peel] %s %s %s hits=%d flesh=%d combo=%d %d/%d", player.Name, P.Type, result, #hits, flesh, combo, P.Removed, P.Total))
 	end
 	reply(player, data)
 end

@@ -91,20 +91,27 @@ Config.Peel = {
 	Assisted = { GreenBonus = 0.20, MaxYield = 0.85, ComboDisabled = true },
 	TutorialGreenMultiplier = 2, -- 2.11 (Etapa 2)
 
-	-- Descascar livre: a faca tira a casca por onde passar, em qualquer direção. A faixa verde
-	-- é o minigame: percorrê-la de ponta a ponta é PERFEITA (combo). Errar não impede de
-	-- descascar, só tira pontos (rendimento).
+	-- Descascar livre (como no Potato Please original): a faca tira uma tira de casca por onde
+	-- passar, em qualquer direção; a batata gira nos dois eixos. Sem minigame.
+	-- A casca tem camadas: cada pedaço precisa de Layers passadas (a 1ª tira a casca escura e
+	-- mostra a de baixo, a 2ª chega na polpa). Passar onde já não tem casca raspa a polpa e só
+	-- tira pontos (rendimento). Passadas limpas seguidas sobem o combo.
 	Free = {
-		Segments = 10, -- pedaços de casca ao longo de cada faixa
+		Segments = 12, -- pedaços ao longo de cada coluna (de ponta a ponta)
+		Layers = 2, -- passadas para tirar um pedaço por completo
+		KnifeWidth = 2, -- colunas que a faca pega de uma vez (ferramentas melhores pegam mais)
 		FinishFraction = 0.9, -- com 90% da casca tirada a batata está pronta
-		FleshPenalty = 0.01, -- cada pedaço de polpa raspado (passar onde já não tem casca) tira 1%
-		BadPenalty = 0.02, -- passada ruim (quase só polpa) tira mais 2%
+		FleshPenalty = 0.005, -- cada pedaço de polpa raspado tira 0,5%
+		BadPenalty = 0.02, -- passada que foi quase só polpa tira mais 2%
 		MinYield = 0.5,
-		MaxPatchesPerSecond = 45, -- anti-script
+		CleanMinHits = 4, -- passada limpa (combo +1): tirou pelo menos 4 camadas sem raspar polpa
+		MaxPatchesPerSecond = 200, -- anti-script (grade fina: uma passada toca muitos pedaços)
 		MinDuration = 0.05,
 		MaxDuration = 2.5,
 		ChunkSeconds = 1.0, -- arrasto longo é enviado em pedaços de 1 s
-		RotateSpeed = 3.2, -- rad/s ao girar com teclas/botões
+		RotateSpeed = 2.6, -- rad/s ao girar com A/D
+		TiltSpeed = 1.8, -- rad/s ao inclinar com W/S
+		MaxTilt = math.rad(40),
 	},
 }
 
@@ -122,25 +129,25 @@ Config.Delivery = {
 Config.Potatoes = {
 	-- casca terrosa e fosca (SkinMaterial) contra a polpa clara e lisa: dá para ver o que já foi descascado
 	Comum = {
-		Name = "Batata", Chance = 0.80, Strips = 8, BaseValue = 5, WorldScale = 1, CloseupA = 1.2, CloseupB = 0.8,
-		SkinColor = Color3.fromRGB(112, 76, 44), SpotColor = Color3.fromRGB(58, 38, 22), FleshColor = Color3.fromRGB(226, 208, 160), SkinMaterial = "Ground",
+		Name = "Batata", Chance = 0.80, Strips = 16, BaseValue = 12, WorldScale = 1, CloseupA = 1.2, CloseupB = 0.8,
+		SkinColor = Color3.fromRGB(112, 76, 44), SpotColor = Color3.fromRGB(58, 38, 22), FleshColor = Color3.fromRGB(190, 170, 124), SkinMaterial = "Ground",
 	},
 	Grande = {
-		Name = "Batata grande", Plural = "batatas grandes", Chance = 0.12, Strips = 12, BaseValue = 10, WorldScale = 1.5, CloseupA = 1.2, CloseupB = 1.0,
-		SkinColor = Color3.fromRGB(104, 70, 42), SpotColor = Color3.fromRGB(56, 36, 22), FleshColor = Color3.fromRGB(226, 208, 160), SkinMaterial = "Ground",
+		Name = "Batata grande", Plural = "batatas grandes", Chance = 0.12, Strips = 20, BaseValue = 25, WorldScale = 1.5, CloseupA = 1.2, CloseupB = 1.0,
+		SkinColor = Color3.fromRGB(104, 70, 42), SpotColor = Color3.fromRGB(56, 36, 22), FleshColor = Color3.fromRGB(190, 170, 124), SkinMaterial = "Ground",
 	},
 	Torta = {
-		Name = "Batata torta", Plural = "batatas tortas", Chance = 0.06, Strips = 8, BaseValue = 8, WorldScale = 1, CloseupA = 1.25, CloseupB = 0.78,
+		Name = "Batata torta", Plural = "batatas tortas", Chance = 0.06, Strips = 16, BaseValue = 18, WorldScale = 1, CloseupA = 1.25, CloseupB = 0.78,
 		WobbleAmplitude = 0.20, WobblePeriod = 1.2, -- faixa verde oscila 20% da largura, ciclo 1,2 s
-		SkinColor = Color3.fromRGB(116, 58, 40), SpotColor = Color3.fromRGB(64, 30, 22), FleshColor = Color3.fromRGB(226, 208, 160), SkinMaterial = "Ground",
+		SkinColor = Color3.fromRGB(116, 58, 40), SpotColor = Color3.fromRGB(64, 30, 22), FleshColor = Color3.fromRGB(190, 170, 124), SkinMaterial = "Ground",
 	},
 	Podre = {
-		Name = "Batata podre", Chance = 0.018, Strips = 8, BaseValue = 0, DiscardValue = 15, WorldScale = 1, CloseupA = 1.2, CloseupB = 0.8,
+		Name = "Batata podre", Chance = 0.018, Strips = 16, BaseValue = 0, DiscardValue = 15, WorldScale = 1, CloseupA = 1.2, CloseupB = 0.8,
 		-- pode ser descascada, mas a 1ª passada zera o combo e a batata passa a valer 0
 		SkinColor = Color3.fromRGB(120, 110, 130), SpotColor = Color3.fromRGB(80, 110, 60), FleshColor = Color3.fromRGB(150, 140, 110),
 	},
 	Dourada = {
-		Name = "Batata dourada", Chance = 0.002, Strips = 8, BaseValue = 250, WorldScale = 1, CloseupA = 1.2, CloseupB = 0.8,
+		Name = "Batata dourada", Chance = 0.002, Strips = 16, BaseValue = 400, WorldScale = 1, CloseupA = 1.2, CloseupB = 0.8,
 		SkinColor = Color3.fromRGB(240, 196, 60), SpotColor = Color3.fromRGB(255, 240, 150), FleshColor = Color3.fromRGB(255, 252, 240),
 	},
 }
@@ -182,7 +189,7 @@ Config.Golden = {
 -- 2.10 / 3 Automação
 Config.MachineRules = {
 	MaxYield = 0.85, -- batata de máquina nunca passa de 85% nem recebe combo
-	BaseValue = 5, -- valor base de uma batata de máquina (Comum)
+	BaseValue = 12, -- valor base de uma batata de máquina (Comum)
 	CostGrowth = 1.15, -- custo de cada nível cresce x1,15
 	ProductionGrowth = 1.10, -- produção de cada nível cresce x1,10
 	UpgradeCostFactor = 0.25, -- nível 2 custa 25% do preço da máquina (ASSUNÇÃO: o GDD não define)
@@ -220,11 +227,11 @@ end
 -- 3. Ferramentas de mão (Tier = cor de tier da seção 7.1)
 Config.Tools = {
 	{ Id = "FacaCega", Name = "Faca cega", Cost = 0, Tier = 1, StripsPerStroke = 1, GreenWidth = 0.30, Desc = "Lâmina lascada. Melhor que nada." },
-	{ Id = "FacaCozinha", Name = "Faca de cozinha", Cost = 150, Tier = 2, StripsPerStroke = 1, GreenWidth = 0.40, ValueBonus = 0.10, Desc = "Faixa verde 40%. +10% no valor de cada batata." },
-	{ Id = "DescascadorY", Name = "Descascador em Y", Cost = 1200, Tier = 3, StripsPerStroke = 2, GreenWidth = 0.45, RotateTime = 0.10, Desc = "Tira 2 faixas por passada. Batata gira mais rápido." },
-	{ Id = "DescascadorDuplo", Name = "Descascador duplo", Cost = 9000, Tier = 4, StripsPerStroke = 3, GreenWidth = 0.55, Desc = "Tira 3 faixas por passada. Libera o combo x4." },
-	{ Id = "LaminaVapor", Name = "Lâmina a vapor", Cost = 60000, Tier = 5, StripsPerStroke = 4, GreenWidth = 0.60, CompostPerStrip = 1, Desc = "Tira 4 faixas. Cada faixa vira adubo (+1 Moeda)." },
-	{ Id = "Laser", Name = "Laser de cozinha", Cost = 400000, Tier = 6, StripsPerStroke = 6, GreenWidth = 0.70, GoldenChance = 1 / 400, Desc = "Tira 6 faixas. Batata dourada: 1 em 400." },
+	{ Id = "FacaCozinha", Name = "Faca de cozinha", Cost = 120, Tier = 2, StripsPerStroke = 1, GreenWidth = 0.40, ValueBonus = 0.10, Desc = "Faixa verde 40%. +10% no valor de cada batata." },
+	{ Id = "DescascadorY", Name = "Descascador em Y", Cost = 600, Tier = 3, StripsPerStroke = 2, GreenWidth = 0.45, RotateTime = 0.10, Desc = "Tira 2 faixas por passada. Batata gira mais rápido." },
+	{ Id = "DescascadorDuplo", Name = "Descascador duplo", Cost = 4000, Tier = 4, StripsPerStroke = 3, GreenWidth = 0.55, Desc = "Tira 3 faixas por passada. Libera o combo x4." },
+	{ Id = "LaminaVapor", Name = "Lâmina a vapor", Cost = 25000, Tier = 5, StripsPerStroke = 4, GreenWidth = 0.60, CompostPerStrip = 1, Desc = "Tira 4 faixas. Cada faixa vira adubo (+1 Moeda)." },
+	{ Id = "Laser", Name = "Laser de cozinha", Cost = 150000, Tier = 6, StripsPerStroke = 6, GreenWidth = 0.70, GoldenChance = 1 / 400, Desc = "Tira 6 faixas. Batata dourada: 1 em 400." },
 }
 Config.ToolsById = {}
 for _, t in Config.Tools do
@@ -232,9 +239,9 @@ for _, t in Config.Tools do
 end
 
 Config.Collection = {
-	{ Id = "Luvas", Name = "Luvas", Cost = 300, Hands = 2, Tab = "Ferramentas", Desc = "Segure 2 batatas. Ao terminar uma, ela vai sozinha para a esteira e a segunda já entra no modo Descascar." },
-	{ Id = "CarrinhoMao", Name = "Carrinho de mão", Cost = 2500, Stock = 20, Tab = "Ferramentas", Desc = "Leva 20 batatas da pilha. Cada uma pronta vai sozinha para a esteira e a próxima já vem para a mão." },
-	{ Id = "Aspirador", Name = "Aspirador de batata", Cost = 25000, Radius = 6, Tab = "Ferramentas", Desc = "Puxa batatas soltas num raio de 6 studs." },
+	{ Id = "Luvas", Name = "Luvas", Cost = 250, Hands = 2, Tab = "Ferramentas", Desc = "Segure 2 batatas. Ao terminar uma, ela vai sozinha para a esteira e a segunda já entra no modo Descascar." },
+	{ Id = "CarrinhoMao", Name = "Carrinho de mão", Cost = 1500, Stock = 20, Tab = "Ferramentas", Desc = "Leva 20 batatas da pilha. Cada uma pronta vai sozinha para a esteira e a próxima já vem para a mão." },
+	{ Id = "Aspirador", Name = "Aspirador de batata", Cost = 8000, Radius = 6, Tab = "Ferramentas", Desc = "Puxa batatas soltas num raio de 6 studs." },
 }
 
 -- Melhorias da cozinha (compradas na Loja, aba Cozinha). Nível 1 é o inicial (sem custo).
@@ -242,17 +249,32 @@ Config.Upgrades = {
 	{
 		Id = "Cart", Name = "Carrinho maior", Unit = "batatas por viagem",
 		Desc = "Mais batatas por viagem ao Rei. O carrinho parte sozinho quando enche.",
-		Levels = { { Value = 5 }, { Value = 10, Cost = 100 }, { Value = 20, Cost = 600 }, { Value = 35, Cost = 3000 }, { Value = 50, Cost = 12000 }, { Value = 80, Cost = 50000 }, { Value = 120, Cost = 200000 } },
+		Levels = { { Value = 5 }, { Value = 10, Cost = 80 }, { Value = 20, Cost = 400 }, { Value = 35, Cost = 1500 }, { Value = 50, Cost = 5000 }, { Value = 80, Cost = 20000 }, { Value = 120, Cost = 80000 } },
+	},
+	{
+		Id = "Feeder", Name = "Alimentador automático", Unit = "", Toggle = true,
+		Desc = "Uma calha traz a próxima batata direto para a sua mão e a pronta vai sozinha para a esteira. É só descascar.",
+		Levels = { { Value = 0 }, { Value = 1, Cost = 700 } },
 	},
 	{
 		Id = "Belt", Name = "Esteira mais rápida", Unit = "studs/s",
 		Desc = "A esteira leva as batatas até o carrinho mais depressa.",
-		Levels = { { Value = 3 }, { Value = 4.5, Cost = 150 }, { Value = 6.5, Cost = 1000 }, { Value = 9, Cost = 6000 }, { Value = 13, Cost = 30000 } },
+		Levels = { { Value = 3 }, { Value = 4.5, Cost = 100 }, { Value = 6.5, Cost = 500 }, { Value = 9, Cost = 2500 }, { Value = 13, Cost = 12000 } },
+	},
+	{
+		Id = "Washer", Name = "Lavadora na esteira", Unit = "% de valor",
+		Desc = "As batatas tomam um banho no caminho do carrinho e valem mais.",
+		Levels = { { Value = 0 }, { Value = 25, Cost = 300 }, { Value = 50, Cost = 1500 }, { Value = 100, Cost = 8000 }, { Value = 150, Cost = 40000 } },
 	},
 	{
 		Id = "AutoPeel", Name = "Descascador automático", Unit = "batatas/min",
 		Desc = "Uma máquina ao lado da esteira descasca sozinha, mesmo com você fora (rendimento 85%, sem combo).",
-		Levels = { { Value = 0 }, { Value = 2, Cost = 800 }, { Value = 5, Cost = 5000 }, { Value = 10, Cost = 25000 }, { Value = 20, Cost = 100000 }, { Value = 40, Cost = 400000 }, { Value = 70, Cost = 1500000 } },
+		Levels = { { Value = 0 }, { Value = 2, Cost = 500 }, { Value = 5, Cost = 2500 }, { Value = 10, Cost = 10000 }, { Value = 20, Cost = 40000 }, { Value = 40, Cost = 150000 }, { Value = 70, Cost = 500000 } },
+	},
+	{
+		Id = "Cutter", Name = "Cortador de fritas", Unit = "x valor",
+		Desc = "Corta as batatas em fritas antes do carrinho. Fritas valem mais para o Rei.",
+		Levels = { { Value = 1 }, { Value = 1.5, Cost = 2000 }, { Value = 2, Cost = 10000 }, { Value = 3, Cost = 50000 }, { Value = 5, Cost = 250000 } },
 	},
 }
 Config.UpgradesById = {}
@@ -275,7 +297,7 @@ Config.ShopTabs = {
 -- 2.11 Tutorial
 Config.Tutorial = {
 	PotatoesToPeel = 3, -- a 1ª com ajuda + 2 sem ajuda (começo mais leve)
-	TopUpCoins = 150,
+	TopUpCoins = 120,
 	HighlightTool = "FacaCozinha",
 	HandStrips = 2, -- mão animada nas 2 primeiras faixas
 }
@@ -465,7 +487,7 @@ Config.Missions = {
 	DailyCount = 3,
 	WeeklyCount = 5,
 	Daily = {
-		{ Id = "Perfect20", Kind = "Perfect", Target = 20, Text = "Faça 20 passadas perfeitas", Coins = 800, XP = 60 },
+		{ Id = "Perfect20", Kind = "Perfect", Target = 20, Text = "Faça 20 passadas limpas (sem raspar polpa)", Coins = 800, XP = 60 },
 		{ Id = "Peel25", Kind = "Peel", Target = 25, Text = "Descasque 25 batatas à mão", Coins = 1000, XP = 60 },
 		{ Id = "Deliver40", Kind = "Deliver", Target = 40, Text = "Entregue 40 batatas ao Rei", Coins = 1200, XP = 60 },
 		{ Id = "Combo15", Kind = "Combo", Target = 15, Text = "Chegue ao combo 15", Coins = 700, XP = 50 },
@@ -474,7 +496,7 @@ Config.Missions = {
 		{ Id = "Discard1", Kind = "Discard", Target = 1, Text = "Jogue uma batata podre na lixeira", Coins = 500, XP = 40 },
 	},
 	Weekly = {
-		{ Id = "Perfect300", Kind = "Perfect", Target = 300, Text = "Faça 300 passadas perfeitas", Coins = 8000, XP = 250 },
+		{ Id = "Perfect300", Kind = "Perfect", Target = 300, Text = "Faça 300 passadas limpas (sem raspar polpa)", Coins = 8000, XP = 250 },
 		{ Id = "Deliver500", Kind = "Deliver", Target = 500, Text = "Entregue 500 batatas ao Rei", Coins = 10000, XP = 250 },
 		{ Id = "Peel200", Kind = "Peel", Target = 200, Text = "Descasque 200 batatas à mão", Coins = 9000, XP = 250 },
 		{ Id = "Orders5", Kind = "Order", Target = 5, Text = "Cumpra 5 pedidos do Rei", Coins = 7000, XP = 200 },

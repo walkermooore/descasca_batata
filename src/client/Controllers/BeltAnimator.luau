@@ -74,6 +74,22 @@ local function track(K: Instance)
 			end
 		end
 	end
+	-- ponto da esteira onde fica o cortador de fritas (dali em diante a batata vira fritas)
+	local cutter = belt:FindFirstChild("Cutter")
+	if cutter then
+		local cpos = cutter:GetPivot().Position
+		local best, bestDist = len, math.huge
+		for j = 2, #pts do
+			local a, b = pts[j - 1], pts[j]
+			local ab = b - a
+			local t = math.clamp((cpos - a):Dot(ab) / ab:Dot(ab), 0, 1)
+			local dist = (a + ab * t - cpos).Magnitude
+			if dist < bestDist then
+				best, bestDist = cum[j - 1] + ab.Magnitude * t, dist
+			end
+		end
+		info.CutterD = best
+	end
 	local auto = belt:FindFirstChild("AutoPeeler")
 	info.Drum = auto and auto:FindFirstChild("Drum")
 	info.DrumCF = info.Drum and info.Drum.CFrame
@@ -114,6 +130,12 @@ local function step()
 							pos, dir = endPos - endDir * 0.62 * (wait - 1), endDir
 						else
 							pos, dir = at(info, a * info.Len)
+						end
+						-- passou pelo cortador: vira um montinho de fritas douradas (só visual, neste cliente)
+						if info.CutterD and K:GetAttribute("CutterOn") and a * info.Len >= info.CutterD and not p:GetAttribute("Fries") then
+							p:SetAttribute("Fries", true)
+							p.Color = Color3.fromRGB(214, 170, 72)
+							p.Size = Vector3.new(0.9, 0.35, 0.9)
 						end
 						local side = dir:Cross(Vector3.yAxis).Unit * (p:GetAttribute("Lane") or 0)
 						local roll = if wait and a >= 1 then 0 else a * info.Len * 1.5
