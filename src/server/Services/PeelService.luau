@@ -2,7 +2,7 @@
 -- Descascar livre: a casca é uma grade de pedaços (colunas x Segments), cada um com Layers camadas.
 -- O cliente diz em quais pedaços a faca passou (cada passada tira uma camada) e quanta polpa
 -- raspou; o servidor valida (pedaços válidos, ritmo, distância da mesa, relógio)
--- e calcula rendimento, combo e valor. Com 90% da casca tirada a batata fica pronta e vai
+-- e calcula rendimento e valor. Com 90% da casca tirada a batata fica pronta e vai
 -- para a mão (descascada), para o jogador colocar na esteira.
 --
 -- Mãos: s.Held (mão direita, a que é descascada) e s.Extra (mão esquerda, com Luvas).
@@ -768,7 +768,7 @@ local function onStroke(player: Player, seq: any, cut: any, flesh: any, duration
 	end
 	P.Removed += removedNow
 
-	-- resultado: LIMPA = tirou casca sem raspar polpa (sobe o combo); RUIM = quase só polpa
+	-- resultado: LIMPA = tirou casca sem raspar polpa; RUIM = quase só polpa
 	flesh = math.clamp(math.floor(flesh), 0, 400)
 	watchBot(player, s, if flesh == 0 then 1 else 0, duration)
 	local result
@@ -782,34 +782,16 @@ local function onStroke(player: Player, seq: any, cut: any, flesh: any, duration
 		result = "Good"
 	end
 	-- errar não impede de descascar: só tira rendimento
-	P.Penalty = math.min(1, P.Penalty + flesh * free.FleshPenalty + (if result == "Bad" then free.BadPenalty else 0))
+	local steady = 1 - math.min(0.8, (pdata.Talents.MaoLeve or 0) * Config.TalentsById.MaoLeve.PerLevel) -- talento Mão leve
+	P.Penalty = math.min(1, P.Penalty + (flesh * free.FleshPenalty + (if result == "Bad" then free.BadPenalty else 0)) * steady)
 
-	local serverNow = Workspace:GetServerTimeNow()
-	local combo = s.Combo
-	if combo > 0 and serverNow > s.ComboDeadline then
-		combo = 0
-	end
-	local restarting = combo == 0
-	combo = PeelMath.NextCombo(combo, result, s.Assisted)
-	local startBonus = (pdata.Talents.ComboInicial or 0) * Config.TalentsById.ComboInicial.PerLevel
-	if restarting and combo == 1 and startBonus > 0 then
-		combo += startBonus
-	end
+	-- sem combo: o valor depende só do rendimento (quanto de polpa sobrou)
+	local combo, comboMult, comboTier = 0, 1, 1
 	local rotten = false
-	if isAuto then
-		combo = 0
-	end
 	if P.Type == "Podre" and not P.Spoiled then
 		P.Spoiled = true
 		rotten = true
-		combo = 0
 	end
-	local comboMult, comboTier = PeelMath.ComboMultiplier(combo, tool.Tier)
-	S.Session.SetCombo(player, combo, comboMult, serverNow + cfg.ComboExpire)
-	if combo > pdata.Stats.BestCombo then
-		pdata.Stats.BestCombo = combo
-	end
-	S.Bus.Fire("ComboChanged", player, combo)
 	S.Bus.Fire("StrokeResult", player, result)
 	local yieldNow = math.clamp(1 - P.Penalty, free.MinYield, 1)
 	S.Bus.Fire("StripsPeeled", player, removedNow / SEG, yieldNow) -- corrida e rankings

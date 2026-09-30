@@ -196,7 +196,6 @@ function OrderService.Init(services)
 		states[player] = nil
 	end)
 	S.Bus.Connect("PotatoFinished", onPotatoFinished)
-	S.Bus.Connect("ComboChanged", onCombo)
 	Remotes.OrderAction.OnServerEvent:Connect(function(player, action)
 		if action == "Accept" then
 			OrderService.Accept(player)

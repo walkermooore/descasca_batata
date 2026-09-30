@@ -42,7 +42,7 @@ local DEFAULT = {
 	-- Etapa 4: social
 	Likes = 0, -- curtidas recebidas na cozinha
 	LikesGiven = {}, -- userId do dono -> dia da última curtida
-	Weekly = { Week = 0, Peeled = 0, BestCombo = 0, Race = 0 },
+	Weekly = { Week = 0, Peeled = 0, Clean = 0, Race = 0 },
 	-- Etapa 6: monetização
 	PassGrants = {}, -- passes com entrega única já entregues (Kit Inicial)
 	Boost = { Mult = 1, Until = 0 },

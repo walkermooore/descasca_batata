@@ -260,6 +260,236 @@ local function collectionModel(id: string): Model
 	return m
 end
 
+-- Modelos próprios das melhorias da cozinha (mais legíveis na miniatura que a peça do mapa).
+local IRON = Color3.fromRGB(78, 74, 70)
+local RUST = Color3.fromRGB(128, 74, 44)
+local PLANK = Color3.fromRGB(104, 70, 44)
+local PEELED = Color3.fromRGB(222, 200, 140)
+
+local function peeledPotato(m: Model, cf: CFrame, s: number)
+	local p = potato(m, cf, s)
+	p.Color = PEELED
+	p.Material = Enum.Material.SmoothPlastic
+	return p
+end
+
+local function rivets(m: Model, cf: CFrame, xs: { number }, ys: { number })
+	for _, x in xs do
+		for _, y in ys do
+			ball(m, 0.08, cf * CFrame.new(x, y, 0), STEEL, Enum.Material.Metal)
+		end
+	end
+end
+
+local function kitchenModel(id: string): Model?
+	local m = Instance.new("Model")
+	if id == "Cart" then
+		-- carroça de madeira com cintas de ferro, rodas raiadas e monte de batatas
+		part(m, Vector3.new(2.0, 0.12, 1.3), CFrame.new(0, 0, 0), PLANK, Enum.Material.WoodPlanks)
+		for _, s in { -1, 1 } do
+			part(m, Vector3.new(2.0, 0.7, 0.1), CFrame.new(0, 0.4, 0.62 * s), PLANK, Enum.Material.WoodPlanks)
+			part(m, Vector3.new(0.1, 0.7, 1.3), CFrame.new(0.97 * s, 0.4, 0), PLANK, Enum.Material.WoodPlanks)
+			part(m, Vector3.new(2.06, 0.08, 0.12), CFrame.new(0, 0.72, 0.62 * s), IRON, Enum.Material.Metal)
+			for _, x in { -0.6, 0.6 } do
+				part(m, Vector3.new(0.08, 0.74, 0.12), CFrame.new(x, 0.4, 0.63 * s), IRON, Enum.Material.Metal)
+				-- rodas
+				local w = CFrame.new(x, -0.28, 0.76 * s)
+				part(m, Vector3.new(0.5, 0.6, 0.6), w * CFrame.Angles(0, rad(90), 0), PLANK, Enum.Material.Wood, Enum.PartType.Cylinder).Size = Vector3.new(0.1, 0.6, 0.6)
+				part(m, Vector3.new(0.12, 0.64, 0.64), w * CFrame.Angles(0, rad(90), 0), IRON, Enum.Material.Metal, Enum.PartType.Cylinder).Transparency = 0.6
+				for k = 0, 2 do
+					part(m, Vector3.new(0.05, 0.56, 0.05), w * CFrame.Angles(0, 0, rad(k * 60)), IRON, Enum.Material.Metal)
+				end
+				ball(m, 0.14, w, IRON, Enum.Material.Metal)
+			end
+		end
+		for i = 1, 9 do
+			local x = ((i - 1) % 3 - 1) * 0.5
+			local z = (math.floor((i - 1) / 3) - 1) * 0.35
+			potato(m, CFrame.new(x, 0.6 + (if i == 5 then 0.2 else 0), z) * CFrame.Angles(0, i, rad(i * 25)), 1.2)
+		end
+		part(m, Vector3.new(0.05, 1.0, 0.05), CFrame.new(0.9, 1.1, 0.55), WOOD, Enum.Material.Wood)
+		part(m, Vector3.new(0.4, 0.26, 0.02), CFrame.new(0.72, 1.45, 0.55), Color3.fromRGB(176, 52, 40), Enum.Material.Fabric)
+	elseif id == "Belt" then
+		-- esteira com trilhos, rolos nas pontas, lona com travessas e batatas
+		for _, s in { -1, 1 } do
+			part(m, Vector3.new(2.4, 0.16, 0.08), CFrame.new(0, 0, 0.46 * s), IRON, Enum.Material.Metal)
+			for _, x in { -1.0, 1.0 } do
+				part(m, Vector3.new(0.1, 0.7, 0.1), CFrame.new(x, -0.4, 0.44 * s), IRON, Enum.Material.Metal)
+			end
+		end
+		part(m, Vector3.new(2.3, 0.06, 0.84), CFrame.new(0, 0.05, 0), DARK, Enum.Material.Rubber)
+		for x = -1.0, 1.0, 0.25 do
+			part(m, Vector3.new(0.04, 0.04, 0.84), CFrame.new(x, 0.09, 0), Color3.fromRGB(58, 54, 50), Enum.Material.Rubber)
+		end
+		for _, x in { -1.18, 1.18 } do
+			part(m, Vector3.new(0.9, 0.2, 0.2), CFrame.new(x, 0.02, 0) * CFrame.Angles(0, rad(90), 0), STEEL, Enum.Material.Metal, Enum.PartType.Cylinder)
+		end
+		for _, x in { -1.0, 1.0 } do
+			part(m, Vector3.new(2.1, 0.06, 0.06), CFrame.new(0, -0.5, 0.44 * (if x < 0 then -1 else 1)), IRON, Enum.Material.Metal)
+		end
+		part(m, Vector3.new(0.3, 0.3, 0.3), CFrame.new(1.0, -0.3, 0.6), RUST, Enum.Material.CorrodedMetal)
+		cylZ(m, 0.1, 0.22, CFrame.new(1.0, -0.3, 0.78), STEEL, Enum.Material.Metal)
+		for i, x in { -0.7, 0.05, 0.75 } do
+			peeledPotato(m, CFrame.new(x, 0.26, (i - 2) * 0.12) * CFrame.Angles(0, i, 0), 1.2)
+		end
+	elseif id == "Feeder" then
+		-- funil alimentador sobre pés e rampa até a mesa
+		local top, bot = 1.3, 0.5
+		for _, s in { -1, 1 } do
+			part(m, Vector3.new(top, 0.08, 0.72), CFrame.new(0, 0.75, 0.42 * s) * CFrame.Angles(rad(-35 * s), 0, 0), RUST, Enum.Material.CorrodedMetal).Size = Vector3.new(top, 0.72, 0.06)
+			part(m, Vector3.new(0.06, 0.72, top), CFrame.new(0.42 * s, 0.75, 0) * CFrame.Angles(0, 0, rad(35 * s)), RUST, Enum.Material.CorrodedMetal)
+			for _, t in { -1, 1 } do
+				part(m, Vector3.new(0.08, 1.1, 0.08), CFrame.new(0.5 * s, -0.1, 0.5 * t), IRON, Enum.Material.Metal)
+			end
+		end
+		part(m, Vector3.new(bot, 0.08, bot), CFrame.new(0, 0.42, 0), IRON, Enum.Material.Metal)
+		for i = 1, 5 do
+			potato(m, CFrame.new(((i % 3) - 1) * 0.3, 0.75 + math.floor(i / 3) * 0.15, (i % 2 - 0.5) * 0.3) * CFrame.Angles(0, i, rad(i * 30)), 1.1)
+		end
+		-- rampa
+		local ramp = CFrame.new(0, 0.2, -0.9) * CFrame.Angles(rad(-22), 0, 0)
+		part(m, Vector3.new(0.5, 0.05, 1.1), ramp, STEEL, Enum.Material.Metal)
+		for _, s in { -1, 1 } do
+			part(m, Vector3.new(0.05, 0.16, 1.1), ramp * CFrame.new(0.26 * s, 0.07, 0), IRON, Enum.Material.Metal)
+		end
+		potato(m, ramp * CFrame.new(0, 0.16, -0.25), 1.1)
+		rivets(m, CFrame.new(0, 0.75, 0.62) * CFrame.Angles(rad(-35), 0, 0), { -0.45, 0, 0.45 }, { 0.2 })
+	elseif id == "Washer" then
+		-- tanque com água, bolhas, cano de borrifo e batatas boiando
+		part(m, Vector3.new(1.8, 0.1, 1.1), CFrame.new(0, -0.3, 0), IRON, Enum.Material.Metal)
+		for _, s in { -1, 1 } do
+			part(m, Vector3.new(1.8, 0.7, 0.08), CFrame.new(0, 0, 0.51 * s), Color3.fromRGB(96, 110, 118), Enum.Material.Metal)
+			part(m, Vector3.new(0.08, 0.7, 1.1), CFrame.new(0.86 * s, 0, 0), Color3.fromRGB(96, 110, 118), Enum.Material.Metal)
+			part(m, Vector3.new(1.86, 0.06, 0.1), CFrame.new(0, 0.36, 0.52 * s), STEEL, Enum.Material.Metal)
+			for _, x in { -0.7, 0.7 } do
+				part(m, Vector3.new(0.1, 0.4, 0.1), CFrame.new(x, -0.55, 0.45 * s), IRON, Enum.Material.Metal)
+			end
+		end
+		local water = part(m, Vector3.new(1.66, 0.04, 0.96), CFrame.new(0, 0.2, 0), Color3.fromRGB(70, 150, 200), Enum.Material.Glass)
+		water.Transparency = 0.25
+		for i = 1, 7 do
+			local b = ball(m, 0.08 + (i % 3) * 0.04, CFrame.new(-0.7 + i * 0.2, 0.24, ((i * 37) % 7 - 3) * 0.12), Color3.fromRGB(235, 245, 255), Enum.Material.SmoothPlastic)
+			b.Transparency = 0.3
+		end
+		for i, x in { -0.45, 0.1, 0.55 } do
+			potato(m, CFrame.new(x, 0.24, (i - 2) * 0.2) * CFrame.Angles(0, i, rad(20)), 1.2)
+		end
+		-- cano com bicos
+		cylZ(m, 0.08, 0.08, CFrame.new(0, 0, 0) * CFrame.new(0, 0.85, 0) * CFrame.Angles(0, rad(90), 0), STEEL, Enum.Material.Metal).Size = Vector3.new(1.7, 0.08, 0.08)
+		for _, s in { -1, 1 } do
+			part(m, Vector3.new(0.08, 0.55, 0.08), CFrame.new(0.82 * s, 0.6, 0), STEEL, Enum.Material.Metal)
+		end
+		for x = -0.6, 0.6, 0.3 do
+			part(m, Vector3.new(0.08, 0.08, 0.08), CFrame.new(x, 0.79, 0), BRASS, Enum.Material.Metal)
+			local d = part(m, Vector3.new(0.03, 0.3, 0.03), CFrame.new(x, 0.58, 0), Color3.fromRGB(150, 210, 255), Enum.Material.Neon)
+			d.Transparency = 0.5
+		end
+	elseif id == "AutoPeel" then
+		-- armário com janela redonda (tambor girando), engrenagens, funil, chaminé e saída
+		part(m, Vector3.new(1.2, 1.2, 1.0), CFrame.new(0, 0, 0), RUST, Enum.Material.CorrodedMetal)
+		part(m, Vector3.new(1.26, 0.1, 1.06), CFrame.new(0, 0.62, 0), IRON, Enum.Material.Metal)
+		part(m, Vector3.new(1.26, 0.1, 1.06), CFrame.new(0, -0.62, 0), IRON, Enum.Material.Metal)
+		cylZ(m, 0.06, 0.66, CFrame.new(0, 0.02, -0.5), IRON, Enum.Material.Metal)
+		local glass = cylZ(m, 0.04, 0.54, CFrame.new(0, 0.02, -0.53), Color3.fromRGB(255, 190, 90), Enum.Material.Neon)
+		glass.Transparency = 0.35
+		peeledPotato(m, CFrame.new(-0.08, -0.05, -0.45), 0.9)
+		potato(m, CFrame.new(0.1, 0.1, -0.45), 0.9)
+		rivets(m, CFrame.new(0, 0, -0.51), { -0.5, 0.5 }, { -0.5, 0.5 })
+		-- engrenagens na lateral
+		for i, g in { { 0.2, 0.2, 0.5 }, { -0.2, -0.25, 0.36 } } do
+			local c = CFrame.new(0.62, g[2], g[1])
+			part(m, Vector3.new(0.08, g[3], g[3]), c, BRASS, Enum.Material.Metal, Enum.PartType.Cylinder)
+			for k = 0, 5 do
+				part(m, Vector3.new(0.08, 0.1, 0.1), c * CFrame.Angles(rad(k * 60 + i * 30), 0, 0) * CFrame.new(0, g[3] / 2 + 0.03, 0), BRASS, Enum.Material.Metal)
+			end
+		end
+		-- funil em cima
+		for _, s in { -1, 1 } do
+			part(m, Vector3.new(0.7, 0.4, 0.05), CFrame.new(0, 0.85, 0.24 * s) * CFrame.Angles(rad(-25 * s), 0, 0), IRON, Enum.Material.Metal)
+			part(m, Vector3.new(0.05, 0.4, 0.55), CFrame.new(0.33 * s, 0.85, 0) * CFrame.Angles(0, 0, rad(25 * s)), IRON, Enum.Material.Metal)
+		end
+		potato(m, CFrame.new(0, 0.95, 0), 1.0)
+		-- chaminé e saída
+		cylY(m, 0.6, 0.16, CFrame.new(-0.42, 0.95, 0.32), IRON, Enum.Material.Metal)
+		local smoke = ball(m, 0.25, CFrame.new(-0.42, 1.35, 0.32), Color3.fromRGB(200, 200, 200), Enum.Material.SmoothPlastic)
+		smoke.Transparency = 0.5
+		part(m, Vector3.new(0.4, 0.05, 0.6), CFrame.new(-0.7, -0.35, -0.1) * CFrame.Angles(0, 0, rad(25)), STEEL, Enum.Material.Metal)
+		peeledPotato(m, CFrame.new(-0.82, -0.36, -0.1), 1.0)
+		part(m, Vector3.new(0.14, 0.14, 0.14), CFrame.new(0.3, 0.42, -0.52), Color3.fromRGB(90, 255, 120), Enum.Material.Neon)
+	elseif id == "Cutter" then
+		-- cortador de fritas: moldura, grade de lâminas, alavanca, batata em cima e fritas saindo
+		part(m, Vector3.new(1.1, 0.12, 1.1), CFrame.new(0, -0.6, 0), IRON, Enum.Material.Metal)
+		for _, s in { -1, 1 } do
+			part(m, Vector3.new(0.1, 1.2, 0.1), CFrame.new(0.5 * s, 0, 0.5), IRON, Enum.Material.Metal)
+			part(m, Vector3.new(0.1, 1.2, 0.1), CFrame.new(0.5 * s, 0, -0.5), IRON, Enum.Material.Metal)
+		end
+		part(m, Vector3.new(1.1, 0.1, 1.1), CFrame.new(0, 0.1, 0), STEEL, Enum.Material.Metal).Transparency = 0.7
+		for k = -2, 2 do
+			part(m, Vector3.new(0.02, 0.1, 1.0), CFrame.new(k * 0.18, 0.1, 0), STEEL, Enum.Material.Metal).Reflectance = 0.3
+			part(m, Vector3.new(1.0, 0.1, 0.02), CFrame.new(0, 0.1, k * 0.18), STEEL, Enum.Material.Metal).Reflectance = 0.3
+		end
+		part(m, Vector3.new(1.1, 0.08, 0.1), CFrame.new(0, 0.62, 0.5), IRON, Enum.Material.Metal)
+		part(m, Vector3.new(0.8, 0.06, 0.8), CFrame.new(0, 0.5, 0), RUST, Enum.Material.CorrodedMetal)
+		part(m, Vector3.new(0.08, 0.08, 1.0), CFrame.new(0.55, 0.62, -0.35) * CFrame.Angles(rad(20), 0, 0), WOOD, Enum.Material.Wood)
+		ball(m, 0.16, CFrame.new(0.55, 0.8, -0.82), Color3.fromRGB(176, 52, 40), Enum.Material.SmoothPlastic)
+		peeledPotato(m, CFrame.new(0, 0.3, 0), 1.4)
+		for i = 1, 10 do
+			local fry = part(m, Vector3.new(0.07, 0.07, 0.42), CFrame.new(((i * 7) % 9 - 4) * 0.08, -0.46 + (i % 3) * 0.05, ((i * 5) % 7 - 3) * 0.1) * CFrame.Angles(rad((i % 3) * 20), rad(i * 37), 0), Color3.fromRGB(240, 206, 100), Enum.Material.SmoothPlastic)
+			fry.Name = "Fry"
+		end
+	elseif id == "Drum" then
+		-- tambor abrasivo deitado, com aros, suporte, motor com correia e funil
+		local axis = CFrame.new(0, 0.2, 0)
+		part(m, Vector3.new(1.6, 0.9, 0.9), axis, Color3.fromRGB(110, 104, 96), Enum.Material.Slate, Enum.PartType.Cylinder)
+		for _, x in { -0.7, 0, 0.7 } do
+			part(m, Vector3.new(0.08, 0.98, 0.98), axis * CFrame.new(x, 0, 0), RUST, Enum.Material.CorrodedMetal, Enum.PartType.Cylinder)
+		end
+		part(m, Vector3.new(0.06, 0.6, 0.6), axis * CFrame.new(-0.82, 0, 0), DARK, Enum.Material.Metal, Enum.PartType.Cylinder)
+		potato(m, axis * CFrame.new(-0.84, 0, 0.05), 0.9)
+		for _, s in { -1, 1 } do
+			part(m, Vector3.new(0.12, 0.8, 0.12), CFrame.new(0.55 * s, -0.4, 0.35), IRON, Enum.Material.Metal)
+			part(m, Vector3.new(0.12, 0.8, 0.12), CFrame.new(0.55 * s, -0.4, -0.35), IRON, Enum.Material.Metal)
+		end
+		part(m, Vector3.new(1.4, 0.1, 0.9), CFrame.new(0, -0.8, 0), IRON, Enum.Material.Metal)
+		part(m, Vector3.new(0.45, 0.35, 0.4), CFrame.new(0.4, -0.55, -0.2), Color3.fromRGB(60, 80, 70), Enum.Material.Metal)
+		part(m, Vector3.new(0.05, 0.9, 0.06), CFrame.new(0.72, -0.2, -0.2) * CFrame.Angles(0, 0, rad(10)), DARK, Enum.Material.Rubber)
+		-- funil e casca caindo
+		for _, s in { -1, 1 } do
+			part(m, Vector3.new(0.5, 0.35, 0.05), CFrame.new(0.3, 0.8, 0.18 * s) * CFrame.Angles(rad(-25 * s), 0, 0), IRON, Enum.Material.Metal)
+		end
+		for i = 1, 4 do
+			part(m, Vector3.new(0.12, 0.03, 0.08), CFrame.new(-0.2 + i * 0.12, -0.7, 0.2 - i * 0.08) * CFrame.Angles(0, i, 0), Color3.fromRGB(128, 92, 56), Enum.Material.Ground)
+		end
+	elseif id == "Masher" then
+		-- prensa de purê: colunas, travessa, pistão brilhando, bacia com purê e volante vermelho
+		part(m, Vector3.new(1.4, 0.12, 1.0), CFrame.new(0, -0.7, 0), IRON, Enum.Material.Metal)
+		for _, s in { -1, 1 } do
+			part(m, Vector3.new(0.14, 1.6, 0.14), CFrame.new(0.58 * s, 0.1, 0), IRON, Enum.Material.Metal)
+		end
+		part(m, Vector3.new(1.4, 0.2, 0.3), CFrame.new(0, 0.9, 0), RUST, Enum.Material.CorrodedMetal)
+		cylY(m, 0.7, 0.14, CFrame.new(0, 0.45, 0), STEEL, Enum.Material.Metal).Reflectance = 0.3
+		cylY(m, 0.08, 0.66, CFrame.new(0, 0.08, 0), STEEL, Enum.Material.Metal)
+		for k = -1, 1 do
+			part(m, Vector3.new(0.5, 0.02, 0.03), CFrame.new(0, 0.03, k * 0.15), DARK, Enum.Material.Metal)
+		end
+		cylY(m, 0.4, 0.8, CFrame.new(0, -0.44, 0), Color3.fromRGB(70, 66, 62), Enum.Material.Metal)
+		local puree = ball(m, 0.7, CFrame.new(0, -0.22, 0), Color3.fromRGB(236, 214, 150), Enum.Material.SmoothPlastic)
+		puree.Size = Vector3.new(0.7, 0.24, 0.7)
+		ball(m, 0.08, CFrame.new(0.05, -0.1, 0.05), Color3.fromRGB(250, 226, 120), Enum.Material.SmoothPlastic)
+		-- volante
+		local wcf = CFrame.new(0.75, 0.9, 0)
+		part(m, Vector3.new(0.05, 0.6, 0.6), wcf, Color3.fromRGB(176, 52, 40), Enum.Material.Metal, Enum.PartType.Cylinder).Transparency = 0
+		part(m, Vector3.new(0.06, 0.46, 0.46), wcf, RUST, Enum.Material.CorrodedMetal, Enum.PartType.Cylinder)
+		for k = 0, 2 do
+			part(m, Vector3.new(0.06, 0.56, 0.05), wcf * CFrame.Angles(rad(k * 60), 0, 0), Color3.fromRGB(176, 52, 40), Enum.Material.Metal)
+		end
+		part(m, Vector3.new(0.12, 0.06, 0.06), wcf * CFrame.new(0.06, 0.28, 0), DARK, Enum.Material.Wood)
+	else
+		return nil
+	end
+	return m
+end
+
 -- Máquina de verdade da esteira da minha cozinha (vem escondida: mostra as peças).
 local MACHINE_OF = { Washer = "Washer", Cutter = "Cutter", Feeder = "Feeder", AutoPeel = "AutoPeeler", Drum = "Drum", Masher = "Masher" }
 
@@ -332,7 +562,7 @@ function ItemPreview.Make(parent: GuiObject, kind: string, id: string): Viewport
 	elseif kind == "Item" then
 		model = collectionModel(id)
 	elseif kind == "Upgrade" then
-		model = machineModel(id)
+		model = kitchenModel(id) or machineModel(id)
 	elseif kind == "Theme" then
 		model = themeModel(id)
 	end

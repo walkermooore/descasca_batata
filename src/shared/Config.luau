@@ -161,14 +161,14 @@ Config.Orders = {
 	Pool = {
 		{ Id = "Qty15", Kind = "Count", Count = 15, Time = 120 },
 		{ Id = "Big5", Kind = "CountType", Type = "Grande", Count = 5, Time = 180 },
-		{ Id = "Perfect20", Kind = "CountYield", Yield = 1.0, Count = 20, Time = 240 },
-		{ Id = "Combo30", Kind = "Combo", Count = 30, Time = 180 },
+		{ Id = "Clean15", Kind = "CountYield", Yield = 0.95, Count = 15, Time = 240 },
+		{ Id = "Qty25", Kind = "Count", Count = 25, Time = 180 },
 	},
 	-- "Cada rebirth muda o cardápio do Rei": pedidos extras a partir do rebirth indicado
 	RebirthPool = {
 		{ Id = "Torta8", Kind = "CountType", Type = "Torta", Count = 8, Time = 300, MinRebirths = 1 },
 		{ Id = "Qty40", Kind = "Count", Count = 40, Time = 240, MinRebirths = 1 },
-		{ Id = "Combo60", Kind = "Combo", Count = 60, Time = 240, MinRebirths = 2 },
+		{ Id = "Clean30", Kind = "CountYield", Yield = 0.95, Count = 30, Time = 300, MinRebirths = 2 },
 		{ Id = "Big15", Kind = "CountType", Type = "Grande", Count = 15, Time = 300, MinRebirths = 3 },
 	},
 }
@@ -229,7 +229,7 @@ Config.Tools = {
 	{ Id = "FacaCega", Name = "Faca cega", Cost = 0, Tier = 1, StripsPerStroke = 1, GreenWidth = 0.30, Desc = "Lâmina lascada. Melhor que nada." },
 	{ Id = "FacaCozinha", Name = "Faca de cozinha", Cost = 120, Tier = 2, StripsPerStroke = 1, GreenWidth = 0.40, ValueBonus = 0.10, Desc = "Lâmina afiada: corte mais limpo e +10% no valor de cada batata." },
 	{ Id = "DescascadorY", Name = "Descascador em Y", Cost = 600, Tier = 3, StripsPerStroke = 2, GreenWidth = 0.45, RotateTime = 0.10, Desc = "Tira 2 faixas por passada." },
-	{ Id = "DescascadorDuplo", Name = "Descascador duplo", Cost = 4000, Tier = 4, StripsPerStroke = 3, GreenWidth = 0.55, Desc = "Tira 3 faixas por passada. Libera o combo x4." },
+	{ Id = "DescascadorDuplo", Name = "Descascador duplo", Cost = 4000, Tier = 4, StripsPerStroke = 3, GreenWidth = 0.55, Desc = "Tira 3 faixas por passada." },
 	{ Id = "LaminaVapor", Name = "Lâmina a vapor", Cost = 25000, Tier = 5, StripsPerStroke = 4, GreenWidth = 0.60, CompostPerStrip = 1, Desc = "Tira 4 faixas. Cada faixa vira adubo (+1 Moeda)." },
 	{ Id = "Laser", Name = "Laser de cozinha", Cost = 150000, Tier = 6, StripsPerStroke = 6, GreenWidth = 0.70, GoldenChance = 1 / 400, Desc = "Tira 6 faixas. Batata dourada: 1 em 400." },
 }
@@ -268,7 +268,7 @@ Config.Upgrades = {
 	},
 	{
 		Id = "AutoPeel", Name = "Descascador automático", Unit = "batatas/min",
-		Desc = "Uma máquina ao lado da esteira descasca sozinha, mesmo com você fora (rendimento 85%, sem combo).",
+		Desc = "Uma máquina ao lado da esteira descasca sozinha, mesmo com você fora (rendimento 85%).",
 		Levels = { { Value = 0 }, { Value = 2, Cost = 500 }, { Value = 5, Cost = 2500 }, { Value = 10, Cost = 10000 }, { Value = 20, Cost = 40000 }, { Value = 40, Cost = 150000 }, { Value = 70, Cost = 500000 } },
 	},
 	{
@@ -333,7 +333,7 @@ Config.Rebirth = {
 
 -- Talentos comprados com Sementes de Ouro
 Config.Talents = {
-	{ Id = "ComboInicial", Name = "Combo inicial", Desc = "O combo recomeça em +5 por nível.", PerLevel = 5, Costs = { 3, 6, 12, 24 } },
+	{ Id = "MaoLeve", Name = "Mão leve", Desc = "-20% de perda ao raspar polpa por nível.", PerLevel = 0.2, Costs = { 3, 6, 12, 24 } },
 	{ Id = "MaquinasBaratas", Name = "Máquinas mais baratas", Desc = "-8% no custo de máquinas e melhorias por nível.", PerLevel = 0.08, Costs = { 4, 8, 16, 32, 64 } },
 	{ Id = "SorteDourada", Name = "Sorte dourada", Desc = "+15% de chance de batata dourada por nível.", PerLevel = 0.15, Costs = { 3, 6, 12, 24, 48 } },
 	{ Id = "EspacoExtra", Name = "Espaço extra", Desc = "Cada temporada começa com +1 ala liberada por nível.", PerLevel = 1, Costs = { 5, 15, 40, 100 } },
@@ -398,7 +398,7 @@ Config.Race = {
 Config.Rankings = {
 	Boards = {
 		{ Id = "Peeled", Label = "Batatas na semana", Weekly = true },
-		{ Id = "Combo", Label = "Maior combo da semana", Weekly = true },
+		{ Id = "Clean", Label = "Batatas perfeitas da semana", Weekly = true },
 		{ Id = "Race", Label = "Corrida da semana", Weekly = true },
 		{ Id = "Rebirths", Label = "Rebirths", Weekly = false },
 	},
@@ -436,7 +436,7 @@ Config.GamePasses = {
 	{ Id = "BaldeGigante", PassId = 0, Name = "Balde Gigante", Price = 149, OfferAt = "BucketFull", Desc = "+50% de capacidade no carrinho." },
 	{ Id = "CarrinhoTurbo", PassId = 0, Name = "Carrinho Turbo", Price = 99, SpeedBonus = 0.40, OfferAt = "WingBought", Desc = "+40% de velocidade ao andar e no carrinho." },
 	{ Id = "GanhoOffline8h", PassId = 0, Name = "Ganho Offline 8h", Price = 199, OfferAt = "OfflineReturn", Desc = "Ganho offline passa de 2h para 8h." },
-	{ Id = "AutoDescascar", PassId = 0, Name = "Auto-Descascar", Price = 249, OfferAt = "Played30", Desc = "Segurar o botão descasca sozinho (sem combo)." },
+	{ Id = "AutoDescascar", PassId = 0, Name = "Auto-Descascar", Price = 249, OfferAt = "Played30", Desc = "Segurar o botão descasca sozinho (rendimento máx. 85%)." },
 	{ Id = "MaisAjudantes", PassId = 0, Name = "Mais Ajudantes", Price = 299, ExtraSlots = 2, OfferAt = "FirstHelper", Desc = "+2 vagas de ajudante." },
 	{ Id = "VIP", PassId = 0, Name = "VIP da Cozinha Real", Price = 299, CoinBonus = 0.20, OfferAt = "FirstRebirth", Desc = "+20% Moedas, tag no chat, área VIP." },
 	{ Id = "SorteDourada", PassId = 0, Name = "Sorte Dourada", Price = 349, GoldenBonus = 0.5, OfferAt = "FirstGolden", Desc = "+50% de chance de batata dourada." },
@@ -497,16 +497,19 @@ Config.Missions = {
 	DailyCount = 3,
 	WeeklyCount = 5,
 	Daily = {
-		{ Id = "Perfect20", Kind = "Perfect", Target = 20, Text = "Faça 20 passadas limpas (sem raspar polpa)", Coins = 800, XP = 60 },
+		{ Id = "Clean10", Kind = "Clean", Target = 10, Text = "Descasque 10 batatas quase perfeitas (95%+)", Coins = 800, XP = 60 },
 		{ Id = "Peel25", Kind = "Peel", Target = 25, Text = "Descasque 25 batatas à mão", Coins = 1000, XP = 60 },
 		{ Id = "Deliver40", Kind = "Deliver", Target = 40, Text = "Entregue 40 batatas ao Rei", Coins = 1200, XP = 60 },
-		{ Id = "Combo15", Kind = "Combo", Target = 15, Text = "Chegue ao combo 15", Coins = 700, XP = 50 },
+		{ Id = "Earn3000", Kind = "Earn", Target = 3000, Text = "Ganhe 3.000 Moedas com entregas", Coins = 900, XP = 60 },
+		{ Id = "Cart6", Kind = "Cart", Target = 6, Text = "Mande 6 carrinhos cheios ao Rei", Coins = 800, XP = 50 },
+		{ Id = "Upgrade1", Kind = "Upgrade", Target = 1, Text = "Compre 1 melhoria da cozinha", Coins = 700, XP = 50 },
 		{ Id = "Order1", Kind = "Order", Target = 1, Text = "Cumpra 1 pedido do Rei", Coins = 900, XP = 60 },
 		{ Id = "Help10", Kind = "HelpMinutes", Target = 10, Text = "Ajude um amigo por 10 min", Coins = 1000, XP = 70 },
 		{ Id = "Discard1", Kind = "Discard", Target = 1, Text = "Jogue uma batata podre na lixeira", Coins = 500, XP = 40 },
 	},
 	Weekly = {
-		{ Id = "Perfect300", Kind = "Perfect", Target = 300, Text = "Faça 300 passadas limpas (sem raspar polpa)", Coins = 8000, XP = 250 },
+		{ Id = "Clean150", Kind = "Clean", Target = 150, Text = "Descasque 150 batatas quase perfeitas (95%+)", Coins = 8000, XP = 250 },
+		{ Id = "Earn50000", Kind = "Earn", Target = 50000, Text = "Ganhe 50.000 Moedas com entregas", Coins = 9000, XP = 250 },
 		{ Id = "Deliver500", Kind = "Deliver", Target = 500, Text = "Entregue 500 batatas ao Rei", Coins = 10000, XP = 250 },
 		{ Id = "Peel200", Kind = "Peel", Target = 200, Text = "Descasque 200 batatas à mão", Coins = 9000, XP = 250 },
 		{ Id = "Orders5", Kind = "Order", Target = 5, Text = "Cumpra 5 pedidos do Rei", Coins = 7000, XP = 200 },

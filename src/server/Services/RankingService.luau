@@ -1,4 +1,4 @@
--- RankingService: rankings semanais (batatas descascadas, maior combo, corrida) e de rebirths,
+-- RankingService: rankings semanais (batatas descascadas, batatas perfeitas, corrida) e de rebirths,
 -- globais (OrderedDataStore) e entre amigos (seção 5). Os quadros do hub mostram o top 10 global.
 -- Sem DataStore (Studio sem publicar): usa só os jogadores do servidor.
 
@@ -55,7 +55,7 @@ end
 local function ensureWeek(data)
 	local w = RankingService.Week()
 	if data.Weekly.Week ~= w then
-		data.Weekly = { Week = w, Peeled = 0, BestCombo = 0, Race = 0 }
+		data.Weekly = { Week = w, Peeled = 0, Clean = 0, Race = 0 }
 	end
 end
 
@@ -63,8 +63,8 @@ local function valueOf(data, id: string): number
 	ensureWeek(data)
 	if id == "Peeled" then
 		return data.Weekly.Peeled
-	elseif id == "Combo" then
-		return data.Weekly.BestCombo
+	elseif id == "Clean" then
+		return data.Weekly.Clean or 0
 	elseif id == "Race" then
 		return data.Weekly.Race
 	elseif id == "Rebirths" then
@@ -253,19 +253,13 @@ function RankingService.Init(services)
 	S.Bus.Connect("Loaded", function(_, data)
 		ensureWeek(data)
 	end)
-	S.Bus.Connect("PotatoFinished", function(player)
+	S.Bus.Connect("PotatoFinished", function(player, info)
 		local data = S.Data.Get(player)
 		if data then
 			ensureWeek(data)
 			data.Weekly.Peeled += 1
-		end
-	end)
-	S.Bus.Connect("ComboChanged", function(player, combo)
-		local data = S.Data.Get(player)
-		if data then
-			ensureWeek(data)
-			if combo > data.Weekly.BestCombo then
-				data.Weekly.BestCombo = combo
+			if info and not info.Spoiled and (info.AvgYield or 0) >= 0.95 - 1e-6 then
+				data.Weekly.Clean = (data.Weekly.Clean or 0) + 1
 			end
 		end
 	end)

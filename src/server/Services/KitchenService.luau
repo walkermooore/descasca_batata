@@ -213,18 +213,44 @@ function KitchenService.Dump(_player, _K) end
 
 -- ---------------------------------------------------------------- carrinho
 
+-- Lugares das batatas DENTRO da caçamba (o desenho do carrinho é uma bacia: fundo estreito,
+-- paredes que abrem para cima). Camadas de baixo para cima; as duas últimas fazem um montinho.
+-- { altura, meia-largura x, meia-largura z } medidos no modelo do carrinho.
+local CART_LAYERS = {
+	{ 0.34, 0.2, 0.45 },
+	{ 0.62, 0.32, 0.6 },
+	{ 0.9, 0.44, 0.72 },
+	{ 1.18, 0.5, 0.8 },
+	{ 1.46, 0.56, 0.86 },
+	{ 1.74, 0.46, 0.76 },
+	{ 2.0, 0.26, 0.5 },
+}
 local CART_SLOTS = {}
-for layer = 0, 1 do
-	for ix = -2, 2 do
-		for iz = -2, 2 do
-			table.insert(CART_SLOTS, Vector3.new(ix * 0.45, 0.72 + layer * 0.34, iz * 0.7))
+do
+	local order = Random.new(7)
+	for _, L in CART_LAYERS do
+		local layer = {}
+		local nx = math.floor(L[2] * 2 / 0.4 + 1e-6) + 1
+		local nz = math.floor(L[3] * 2 / 0.5 + 1e-6) + 1
+		for ix = 0, nx - 1 do
+			for iz = 0, nz - 1 do
+				table.insert(layer, Vector3.new((ix - (nx - 1) / 2) * 0.4, L[1], (iz - (nz - 1) / 2) * 0.5))
+			end
+		end
+		-- dentro da camada a ordem é embaralhada (fica natural ao encher)
+		for i = #layer, 2, -1 do
+			local j = order:NextInteger(1, i)
+			layer[i], layer[j] = layer[j], layer[i]
+		end
+		for _, v in layer do
+			table.insert(CART_SLOTS, v)
 		end
 	end
 end
 
--- Conteúdo do carrinho com física: cada batata nova cai de cima e se acomoda (e bate nas outras).
--- O servidor guarda o carrinho em casa; quando ele parte, o conteúdo congela para viajar junto
--- (o cliente anima o carrinho inteiro).
+-- Conteúdo do carrinho: cada batata nova cai de cima e se encaixa no seu lugar dentro da caçamba.
+-- As batatas ficam ancoradas (sem física), então nunca saem do carrinho; quando ele parte,
+-- o cliente anima o carrinho inteiro com elas.
 function KitchenService.RefreshCart(K)
 	local cart = K.Cart
 	local target = math.min(#cart.Items, #CART_SLOTS)
@@ -238,11 +264,18 @@ function KitchenService.RefreshCart(K)
 		local item = cart.Items[i]
 		local p = physicalPotato(Config.Potatoes[item.Type].FleshColor, 0.44)
 		p.Name = "CartPotato"
-		p.CFrame = cart.HomeCF * CFrame.new(rng:NextNumber(-0.8, 0.8), 2.4 + rng:NextNumber(0, 1.2), rng:NextNumber(-1.3, 1.3))
-		p.Anchored = cart.State ~= "Home"
-		p.Parent = cart.Contents
-		if not p.Anchored then
-			p:SetNetworkOwner(nil)
+		p.Anchored = true
+		p.CanCollide = false
+		p.CollisionGroup = "NoPlayer"
+		local slot = CART_SLOTS[i] + Vector3.new(rng:NextNumber(-0.04, 0.04), rng:NextNumber(-0.02, 0.03), rng:NextNumber(-0.05, 0.05))
+		local final = cart.HomeCF * CFrame.new(slot) * CFrame.Angles(rng:NextNumber(-0.3, 0.3), rng:NextNumber(0, math.pi * 2), rng:NextNumber(-0.3, 0.3))
+		if cart.State == "Home" then
+			p.CFrame = final + Vector3.new(0, 1.6, 0)
+			p.Parent = cart.Contents
+			TweenService:Create(p, TweenInfo.new(0.3, Enum.EasingStyle.Bounce, Enum.EasingDirection.Out), { CFrame = final }):Play()
+		else
+			p.CFrame = final
+			p.Parent = cart.Contents
 		end
 	end
 	for i = target + 1, #parts do

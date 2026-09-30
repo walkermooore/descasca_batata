@@ -176,6 +176,25 @@ end
 
 local function refreshMissions(player: Player, data)
 	local m = data.Missions
+	-- missão salva que saiu do jogo (ex.: as de combo): sorteia a lista de novo
+	local function stale(list, pool)
+		local ids = {}
+		for _, d in pool do
+			ids[d.Id] = true
+		end
+		for _, x in list or {} do
+			if not ids[x.Id] then
+				return true
+			end
+		end
+		return false
+	end
+	if stale(m.Daily, Config.Missions.Daily) then
+		m.Day = nil
+	end
+	if stale(m.Weekly, Config.Missions.Weekly) then
+		m.Week = nil
+	end
 	if m.Day ~= today() then
 		m.Day = today()
 		m.Daily = pick(Config.Missions.Daily, Config.Missions.DailyCount, today() * 7919 + player.UserId % 10007)
@@ -344,8 +363,21 @@ function RetentionService.Init(services)
 		progress(player, "Deliver", count)
 		addXP(player, Config.Season.XP.PotatoDelivered * count)
 	end)
-	S.Bus.Connect("ComboChanged", function(player, combo)
-		progress(player, "Combo", combo, true)
+	S.Bus.Connect("PotatoFinished", function(player, info)
+		if info and not info.Spoiled and (info.AvgYield or 0) >= 0.95 - 1e-6 then
+			progress(player, "Clean", 1)
+		end
+	end)
+	S.Bus.Connect("Delivered", function(player, amount)
+		progress(player, "Earn", math.floor(amount or 0))
+	end)
+	S.Bus.Connect("CartSent", function(player)
+		progress(player, "Cart", 1)
+	end)
+	S.Bus.Connect("Purchased", function(player, id)
+		if type(id) == "string" and id:sub(1, 8) == "Upgrade:" then
+			progress(player, "Upgrade", 1)
+		end
 	end)
 	S.Bus.Connect("OrderDone", function(player)
 		progress(player, "Order", 1)

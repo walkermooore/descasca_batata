@@ -633,7 +633,7 @@ local function commitStroke(s)
 	end
 	local duration = math.clamp(os.clock() - s.Start, Config.Peel.Free.MinDuration, Config.Peel.Free.MaxDuration)
 	local assisted = player:GetAttribute("Assisted") == true
-	-- mesmas regras do servidor: LIMPA sobe o combo; RUIM (quase só polpa) zera
+	-- mesmas regras do servidor: LIMPA = sem raspar polpa; RUIM = quase só polpa
 	local result
 	if #cut >= Config.Peel.Free.CleanMinHits and s.Flesh == 0 then
 		result = "Perfect"
@@ -659,9 +659,6 @@ local function commitStroke(s)
 		C.Effects.Play("Squish", 0.85, 1)
 		fleshChunk(mid, out)
 		shake(0.1, 0.03)
-	end
-	if s.Flesh > 0 then
-		popup(Strings.FleshScraped, RESULT_COLOR.Bad, view.Root * Vector3.new(B + 1.1, 0.4, 0), 26, 24)
 	end
 	if rottenNow then
 		C.Effects.Play("Squish", 0.7, 1)
@@ -771,13 +768,6 @@ local function onResult(r)
 		return
 	end
 	localCombo = r.Combo
-	if r.ComboMult ~= lastMult then
-		if r.ComboMult > lastMult then
-			C.HUD.Banner(Strings.Combo .. " " .. Format.Mult(r.ComboMult) .. "!")
-			C.Effects.Play("ComboUp")
-		end
-		lastMult = r.ComboMult
-	end
 	if r.Done then
 		if finishing then
 			finishing.Result = r

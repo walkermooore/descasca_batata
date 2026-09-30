@@ -257,7 +257,7 @@ end
 local function refreshCombo()
 	local combo = player:GetAttribute("Combo") or 0
 	local mult = player:GetAttribute("ComboMult") or 1
-	comboFrame.Visible = combo > 0
+	comboFrame.Visible = false -- o combo saiu do jogo
 	comboLabel.Text = Strings.Combo .. " " .. combo
 	comboMultLabel.Text = Format.Mult(mult)
 	comboMultLabel.TextColor3 = if mult > 1 then T.Gold else T.Dim

@@ -75,7 +75,7 @@ return {
 	OrderFailed = "O Rei cansou de esperar. Pedido perdido.",
 	OrderCount = "%d batatas em %s",
 	OrderCountType = "%d %s em %s",
-	OrderCountYield = "%d batatas com rendimento 100%% em %s",
+	OrderCountYield = "%d batatas quase perfeitas (95%%+) em %s",
 	OrderCombo = "Atingir combo %d",
 
 	KingName = "REI GLUTÃO",
@@ -153,7 +153,7 @@ return {
 	OfflineText = "Sua cozinha produziu %s Moedas em %s.",
 
 	Assisted = "Precisão assistida",
-	AssistedInfo = "Faixa verde +20%. Rendimento máx. 85%, sem combo.",
+	AssistedInfo = "Rendimento máx. 85%.",
 	On = "LIGADA",
 	Off = "DESLIGADA",
 }

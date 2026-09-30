@@ -57,11 +57,19 @@ local function updatePortrait()
 		portraitBase = clone:GetPivot()
 		local cam = Instance.new("Camera")
 		cam.FieldOfView = 30
-		-- rosto: parte de cima do modelo, de frente (o Chef olha para -Z)
-		local face = cf.Position + Vector3.new(0, size.Y * 0.18, 0)
+		-- rosto: mira entre os olhos e o chapéu (o Chef olha para -Z); as peças invisíveis
+		-- do modelo aumentam a caixa, então os olhos são a referência
+		local eyes, sum = 0, Vector3.zero
+		for _, d in clone:GetDescendants() do
+			if d:IsA("BasePart") and d.Name == "Eye" then
+				eyes += 1
+				sum += d.Position
+			end
+		end
+		local face = if eyes > 0 then sum / eyes + Vector3.new(0, 0.3, 0) else cf.Position
 		local faceOffset = chef:GetAttribute("FaceOffset")
-		local dir = CFrame.Angles(0, math.rad(faceOffset or 0), 0):VectorToWorldSpace(Vector3.new(0, 0.12, -1)).Unit
-		cam.CFrame = CFrame.lookAt(face + dir * size.Y * 1.35, face)
+		local dir = CFrame.Angles(0, math.rad(faceOffset or 0), 0):VectorToWorldSpace(Vector3.new(0, 0.1, -1)).Unit
+		cam.CFrame = CFrame.lookAt(face + dir * (if eyes > 0 then 4.2 else size.Y * 1.35), face)
 		cam.Parent = portrait
 		portrait.CurrentCamera = cam
 		portraitCam = cam
