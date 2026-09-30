@@ -10,6 +10,7 @@ local ORDER = {
 	{ "Prompts", "PromptController" },
 	{ "Cart", "CartAnimator" },
 	{ "BeltAnim", "BeltAnimator" },
+	{ "Preview", "ItemPreview" },
 	{ "Shop", "ShopController" },
 	{ "Build", "BuildController" },
 	{ "Season", "SeasonController" },
