@@ -70,6 +70,9 @@ local function onPassGranted(player: Player, id: string)
 	S.Avatar.Refresh(player)
 	S.Machines.Recompute(player)
 	publishPasses(player)
+	if S.Perks then
+		S.Perks.Refresh(player)
+	end
 end
 
 function MonetizationService.GrantPass(player: Player, id: string)
@@ -210,6 +213,17 @@ local function grantProduct(player: Player, def): boolean
 	elseif def.GoldenWithin then
 		data.GoldenPity = def.GoldenWithin
 		Remotes.Reward:FireClient(player, "Product", { Title = def.Name, Text = "Uma batata dourada virá nas próximas " .. def.GoldenWithin })
+	elseif def.GoldenNext then
+		data.GoldenForced = (data.GoldenForced or 0) + def.GoldenNext
+		Remotes.Reward:FireClient(player, "Product", { Title = def.Name, Text = "As próximas " .. def.GoldenNext .. " batatas serão douradas" })
+	elseif def.ServerBoostMult then
+		S.Retention.StartServerBoost(def.ServerBoostMult, def.ServerBoostMinutes)
+		for _, p in Players:GetPlayers() do
+			Remotes.Reward:FireClient(p, "Product", {
+				Title = def.Name,
+				Text = string.format("%s pagou um banquete: Moedas x%d para todos por %d min!", player.DisplayName, def.ServerBoostMult, def.ServerBoostMinutes),
+			})
+		end
 	elseif def.Id == "PedidoRelampago" then
 		S.Orders.ForceOffer(player)
 		Remotes.Reward:FireClient(player, "Product", { Title = def.Name, Text = "Um pedido especial chegou ao quadro" })

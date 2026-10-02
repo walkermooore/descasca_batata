@@ -19,6 +19,18 @@ local RetentionService = {}
 local S
 local dirty: { [Player]: boolean } = {}
 local serverBoost = { Mult = 1, Until = 0 }
+
+-- Bônus para o servidor inteiro (Banquete do Rei): o mesmo multiplicador soma tempo.
+function RetentionService.StartServerBoost(mult: number, minutes: number)
+	local now = os.time()
+	if serverBoost.Until > now and serverBoost.Mult == mult then
+		serverBoost.Until += minutes * 60
+	else
+		serverBoost = { Mult = math.max(mult, if serverBoost.Until > now then serverBoost.Mult else 1), Until = now + minutes * 60 }
+	end
+	Workspace:SetAttribute("ServerBoostMult", serverBoost.Mult)
+	Workspace:SetAttribute("ServerBoostEnds", serverBoost.Until)
+end
 local forcedGoldenUntil = 0
 
 local function today(): number

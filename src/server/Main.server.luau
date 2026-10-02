@@ -22,8 +22,10 @@ local ORDER = {
 	{ "Ranking", "RankingService" },
 	{ "Events", "EventService" },
 	{ "Monetization", "MonetizationService" },
+	{ "Perks", "PerksService" },
 	{ "Retention", "RetentionService" },
 	{ "Analytics", "AnalyticsTracker" },
+	{ "Duel", "DuelService" },
 	{ "Dev", "DevService" },
 }
 

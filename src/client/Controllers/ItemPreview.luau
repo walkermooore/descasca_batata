@@ -490,6 +490,180 @@ local function kitchenModel(id: string): Model?
 	return m
 end
 
+-- Miniaturas dos passes e pacotes (Robux).
+local function coinStack(m: Model, cf: CFrame, n: number)
+	for i = 0, n - 1 do
+		part(m, Vector3.new(0.12, 0.6, 0.6), cf * CFrame.new(0, 0.07 + i * 0.13, 0) * CFrame.Angles(0, 0, rad(90)), BRASS, Enum.Material.Metal, Enum.PartType.Cylinder)
+	end
+end
+local function goldPotato(m: Model, cf: CFrame, s: number)
+	local p = potato(m, cf, s)
+	p.Color = Color3.fromRGB(240, 196, 60)
+	p.Material = Enum.Material.Metal
+	p.Reflectance = 0.25
+	return p
+end
+local function chefHat(m: Model, cf: CFrame, color: Color3)
+	part(m, Vector3.new(0.5, 1.0, 1.0), cf * CFrame.Angles(0, 0, rad(90)), color, Enum.Material.Fabric, Enum.PartType.Cylinder)
+	ball(m, 1.3, cf * CFrame.new(0, 0.7, 0), Color3.fromRGB(245, 240, 230), Enum.Material.Fabric)
+end
+local function sack(m: Model, cf: CFrame, s: number)
+	local b = ball(m, 1.3 * s, cf, Color3.fromRGB(150, 122, 84), Enum.Material.Fabric)
+	b.Size = Vector3.new(1.3, 1.5, 1.2) * s
+	part(m, Vector3.new(0.5, 0.3, 0.5) * s, cf * CFrame.new(0, 0.8 * s, 0), Color3.fromRGB(150, 122, 84), Enum.Material.Fabric)
+	part(m, Vector3.new(0.56, 0.08, 0.56) * s, cf * CFrame.new(0, 0.68 * s, 0), Color3.fromRGB(90, 60, 40), Enum.Material.Fabric)
+	part(m, Vector3.new(0.05, 0.5, 0.5) * s, cf * CFrame.new(0, 0, -0.6 * s) * CFrame.Angles(0, rad(90), 0), BRASS, Enum.Material.Metal, Enum.PartType.Cylinder)
+end
+
+local function passModel(id: string): Model?
+	local m = Instance.new("Model")
+	if id == "KitInicial" then
+		knife(m, Config.TierColors[2], false, 0.8)
+		m:PivotTo(CFrame.new(-0.3, 0, 0) * CFrame.Angles(rad(70), 0, rad(-20)))
+		glove(m, CFrame.new(0.55, -0.1, 0.2) * CFrame.Angles(0, 0, rad(-15)), 1)
+		coinStack(m, CFrame.new(0, -0.9, -0.4), 5)
+	elseif id == "BaldeGigante" then
+		cylY(m, 1.3, 1.5, CFrame.new(0, 0, 0), Color3.fromRGB(120, 124, 128), Enum.Material.Metal)
+		cylY(m, 0.1, 1.6, CFrame.new(0, 0.65, 0), IRON, Enum.Material.Metal)
+		cylY(m, 0.1, 1.6, CFrame.new(0, -0.3, 0), IRON, Enum.Material.Metal)
+		for i = 1, 6 do potato(m, CFrame.new(((i % 3) - 1) * 0.35, 0.8 + math.floor(i / 4) * 0.2, (i % 2 - 0.5) * 0.4) * CFrame.Angles(0, i, rad(i * 30)), 1) end
+	elseif id == "CarrinhoTurbo" then
+		local c = kitchenModel("Cart") :: Model
+		for _, d in c:GetChildren() do d.Parent = m end
+		for i = 1, 3 do
+			local s = part(m, Vector3.new(0.06, 0.06, 1.2), CFrame.new(-1.4 - i * 0.2, 0.2 + i * 0.25, 0), Color3.fromRGB(200, 220, 255), Enum.Material.Neon)
+			s.Transparency = 0.3
+			s.CFrame = CFrame.new(-1.5 - i * 0.15, 0.1 + i * 0.25, 0) * CFrame.Angles(0, rad(90), 0)
+		end
+	elseif id == "GanhoOffline8h" then
+		part(m, Vector3.new(0.25, 1.8, 1.8), CFrame.new(0, 0, 0) * CFrame.Angles(0, rad(90), 0), Color3.fromRGB(70, 60, 50), Enum.Material.Wood, Enum.PartType.Cylinder)
+		part(m, Vector3.new(0.27, 1.55, 1.55), CFrame.new(0, 0, -0.02) * CFrame.Angles(0, rad(90), 0), Color3.fromRGB(228, 214, 186), Enum.Material.SmoothPlastic, Enum.PartType.Cylinder)
+		part(m, Vector3.new(0.08, 0.6, 0.05), CFrame.new(0, 0.25, -0.17), DARK, Enum.Material.Metal)
+		part(m, Vector3.new(0.45, 0.08, 0.05), CFrame.new(0.2, 0, -0.17), DARK, Enum.Material.Metal)
+		local moon = ball(m, 0.8, CFrame.new(0.9, 0.9, 0), Color3.fromRGB(240, 230, 170), Enum.Material.Neon)
+		moon.Transparency = 0.1
+	elseif id == "AutoDescascar" then
+		peelerY(m, Config.TierColors[3], false)
+		m:PivotTo(CFrame.Angles(rad(60), 0, 0))
+		local c = CFrame.new(0.7, -0.4, 0.2)
+		part(m, Vector3.new(0.12, 0.7, 0.7), c, BRASS, Enum.Material.Metal, Enum.PartType.Cylinder)
+		for k = 0, 5 do part(m, Vector3.new(0.12, 0.14, 0.14), c * CFrame.Angles(rad(k * 60), 0, 0) * CFrame.new(0, 0.4, 0), BRASS, Enum.Material.Metal) end
+	elseif id == "MaisAjudantes" then
+		chefHat(m, CFrame.new(-0.6, 0, 0), Color3.fromRGB(236, 232, 222))
+		chefHat(m, CFrame.new(0.6, 0.15, 0.3), Color3.fromRGB(236, 232, 222))
+		part(m, Vector3.new(0.5, 0.15, 0.15), CFrame.new(0, 1.4, 0), Color3.fromRGB(90, 220, 110), Enum.Material.Neon)
+		part(m, Vector3.new(0.15, 0.5, 0.15), CFrame.new(0, 1.4, 0), Color3.fromRGB(90, 220, 110), Enum.Material.Neon)
+	elseif id == "VIP" or id == "Duelista" then
+		part(m, Vector3.new(0.5, 1.4, 1.4), CFrame.new(0, 0, 0) * CFrame.Angles(0, 0, rad(90)), BRASS, Enum.Material.Metal, Enum.PartType.Cylinder).Reflectance = 0.2
+		for i = 0, 5 do
+			local a = i / 6 * math.pi * 2
+			part(m, Vector3.new(0.18, 0.5, 0.18), CFrame.new(math.cos(a) * 0.6, 0.45, math.sin(a) * 0.6), BRASS, Enum.Material.Metal)
+			ball(m, 0.16, CFrame.new(math.cos(a) * 0.68, 0.05, math.sin(a) * 0.68), if i % 2 == 0 then Color3.fromRGB(176, 40, 40) else Color3.fromRGB(60, 120, 200), Enum.Material.Neon)
+		end
+		if id == "Duelista" then
+			-- duas facas cruzadas atrás da coroa
+			local k1 = Instance.new("Model")
+			knife(k1, Config.TierColors[5], false, 0.7)
+			k1:PivotTo(CFrame.new(0, 0.2, 0.5) * CFrame.Angles(0, 0, rad(40)) * CFrame.Angles(rad(-90), 0, 0))
+			for _, d in k1:GetChildren() do d.Parent = m end
+			local k2 = Instance.new("Model")
+			knife(k2, Config.TierColors[5], false, 0.7)
+			k2:PivotTo(CFrame.new(0, 0.2, 0.5) * CFrame.Angles(0, 0, rad(-40)) * CFrame.Angles(rad(-90), 0, 0))
+			for _, d in k2:GetChildren() do d.Parent = m end
+		end
+	elseif id == "SorteDourada" or id == "Bussola" or id == "CaixaDourada" then
+		if id == "CaixaDourada" then
+			part(m, Vector3.new(1.8, 0.9, 1.3), CFrame.new(0, -0.3, 0), PLANK, Enum.Material.WoodPlanks)
+			for _, s in { -1, 1 } do part(m, Vector3.new(1.84, 0.12, 0.12), CFrame.new(0, 0.12, s * 0.62), IRON, Enum.Material.Metal) end
+			for i = 1, 3 do goldPotato(m, CFrame.new((i - 2) * 0.5, 0.35, 0) * CFrame.Angles(0, i, rad(20)), 1.3) end
+		elseif id == "Bussola" then
+			part(m, Vector3.new(0.3, 1.6, 1.6), CFrame.new(0, 0, 0) * CFrame.Angles(0, 0, rad(90)), BRASS, Enum.Material.Metal, Enum.PartType.Cylinder)
+			part(m, Vector3.new(0.32, 1.35, 1.35), CFrame.new(0, 0.01, 0) * CFrame.Angles(0, 0, rad(90)), Color3.fromRGB(228, 214, 186), Enum.Material.SmoothPlastic, Enum.PartType.Cylinder)
+			part(m, Vector3.new(0.12, 0.06, 1.0), CFrame.new(0, 0.2, 0) * CFrame.Angles(0, rad(30), 0), Color3.fromRGB(190, 40, 40), Enum.Material.Metal)
+			goldPotato(m, CFrame.new(0.8, 0.5, 0.6), 0.9)
+		else
+			goldPotato(m, CFrame.new(0, 0, 0), 2.4)
+		end
+		local sp = Instance.new("Sparkles") sp.SparkleColor = BRASS sp.Parent = m:FindFirstChildWhichIsA("BasePart")
+	elseif id == "MoedasX2" then
+		coinStack(m, CFrame.new(-0.4, -0.5, 0), 7)
+		coinStack(m, CFrame.new(0.4, -0.5, 0.1), 7)
+		part(m, Vector3.new(0.2, 0.5, 0.5), CFrame.new(0, 0.6, -0.4) * CFrame.Angles(0, rad(90), rad(45)), Color3.fromRGB(90, 220, 110), Enum.Material.Neon)
+	elseif id == "ChefLendario" then
+		chefHat(m, CFrame.new(0, 0, 0), BRASS)
+		local sp = Instance.new("Sparkles") sp.SparkleColor = BRASS sp.Parent = m:FindFirstChildWhichIsA("BasePart")
+	elseif id == "BatataPet" then
+		local b = potato(m, CFrame.new(0, 0, 0), 3.2)
+		b.Color = Color3.fromRGB(150, 108, 64)
+		for _, s in { -1, 1 } do
+			ball(m, 0.26, CFrame.new(0.24 * s, 0.18, -0.68), Color3.fromRGB(245, 240, 230), Enum.Material.SmoothPlastic)
+			ball(m, 0.12, CFrame.new(0.24 * s, 0.17, -0.8), DARK, Enum.Material.SmoothPlastic)
+		end
+		part(m, Vector3.new(0.34, 0.06, 0.06), CFrame.new(0, -0.08, -0.78), Color3.fromRGB(60, 34, 24), Enum.Material.SmoothPlastic)
+		part(m, Vector3.new(0.18, 0.75, 0.75), CFrame.new(0, 0.6, 0.05) * CFrame.Angles(0, 0, rad(90)), Color3.fromRGB(236, 232, 222), Enum.Material.Fabric, Enum.PartType.Cylinder)
+		ball(m, 0.7, CFrame.new(0, 0.85, 0.05), Color3.fromRGB(240, 236, 228), Enum.Material.Fabric)
+	elseif id == "FacaDeOuro" then
+		knife(m, BRASS, false, 1.1)
+		for _, d in m:GetChildren() do
+			if d:IsA("BasePart") and (d.Material == Enum.Material.Metal or d.Material == Enum.Material.SmoothPlastic) then
+				d.Color = Color3.fromRGB(240, 196, 60)
+				d.Material = Enum.Material.Metal
+				d.Reflectance = 0.25
+			end
+		end
+		local sp = Instance.new("Sparkles") sp.SparkleColor = BRASS sp.Parent = m:FindFirstChildWhichIsA("BasePart")
+	elseif id == "CarrinhoDeOuro" then
+		local c = kitchenModel("Cart") :: Model
+		for _, d in c:GetChildren() do
+			if d:IsA("BasePart") and d.Material ~= Enum.Material.Ground then
+				d.Color = Color3.fromRGB(230, 186, 70)
+				d.Material = Enum.Material.Metal
+				d.Reflectance = 0.15
+			end
+			d.Parent = m
+		end
+	elseif id == "MaquinasTurbo" then
+		local c = kitchenModel("AutoPeel") :: Model
+		for _, d in c:GetChildren() do d.Parent = m end
+		local bolt = part(m, Vector3.new(0.15, 0.9, 0.4), CFrame.new(0.95, 0.6, -0.3) * CFrame.Angles(0, 0, rad(20)), Color3.fromRGB(255, 220, 60), Enum.Material.Neon)
+		part(m, Vector3.new(0.15, 0.9, 0.4), CFrame.new(1.05, -0.1, -0.3) * CFrame.Angles(0, 0, rad(-20)), Color3.fromRGB(255, 220, 60), Enum.Material.Neon)
+	elseif id == "SacoP" or id == "SacoM" or id == "SacoG" or id == "SacoXG" then
+		local s = ({ SacoP = 0.7, SacoM = 0.85, SacoG = 1.0, SacoXG = 1.15 })[id]
+		sack(m, CFrame.new(0, 0, 0), s)
+		coinStack(m, CFrame.new(0.9 * s, -0.7 * s, -0.3), math.floor(3 + s * 4))
+		if id == "SacoXG" or id == "SacoG" then sack(m, CFrame.new(-0.9, -0.2, 0.4), 0.7) end
+	elseif id == "Boost2" or id == "Boost3" then
+		-- frasco de tônico com rótulo
+		cylY(m, 1.1, 1.0, CFrame.new(0, 0, 0), Color3.fromRGB(80, 200, 120), Enum.Material.Glass).Transparency = 0.25
+		cylY(m, 0.5, 0.4, CFrame.new(0, 0.8, 0), Color3.fromRGB(80, 200, 120), Enum.Material.Glass).Transparency = 0.25
+		cylY(m, 0.25, 0.46, CFrame.new(0, 1.15, 0), PLANK, Enum.Material.Wood)
+		cylY(m, 0.95, 0.8, CFrame.new(0, -0.02, 0), if id == "Boost3" then Color3.fromRGB(255, 160, 60) else Color3.fromRGB(120, 255, 160), Enum.Material.Neon)
+		part(m, Vector3.new(0.6, 0.4, 0.05), CFrame.new(0, 0, -0.52), Color3.fromRGB(228, 214, 186), Enum.Material.SmoothPlastic)
+	elseif id == "PedidoRelampago" or id == "PassePremium" then
+		part(m, Vector3.new(1.4, 1.8, 0.06), CFrame.new(0, 0, 0), Color3.fromRGB(228, 214, 186), Enum.Material.SmoothPlastic)
+		for _, y in { 0.95, -0.95 } do cylY(m, 0.3, 1.6, CFrame.new(0, y, 0) * CFrame.Angles(0, 0, rad(90)), Color3.fromRGB(200, 186, 150), Enum.Material.SmoothPlastic) end
+		if id == "PedidoRelampago" then
+			part(m, Vector3.new(0.25, 0.9, 0.08), CFrame.new(0.05, 0.2, -0.05) * CFrame.Angles(0, 0, rad(20)), Color3.fromRGB(255, 220, 60), Enum.Material.Neon)
+			part(m, Vector3.new(0.25, 0.9, 0.08), CFrame.new(-0.05, -0.4, -0.05) * CFrame.Angles(0, 0, rad(-20)), Color3.fromRGB(255, 220, 60), Enum.Material.Neon)
+		else
+			ball(m, 0.6, CFrame.new(0, -0.5, -0.06), Color3.fromRGB(176, 40, 40), Enum.Material.SmoothPlastic).Size = Vector3.new(0.6, 0.6, 0.1)
+			for i = 0, 2 do part(m, Vector3.new(0.9, 0.06, 0.08), CFrame.new(0, 0.5 - i * 0.25, -0.05), Color3.fromRGB(120, 100, 80), Enum.Material.SmoothPlastic) end
+		end
+	elseif id == "Banquete" then
+		part(m, Vector3.new(2.2, 0.15, 1.2), CFrame.new(0, -0.2, 0), PLANK, Enum.Material.WoodPlanks)
+		for _, x in { -0.9, 0.9 } do for _, z in { -0.45, 0.45 } do part(m, Vector3.new(0.12, 0.6, 0.12), CFrame.new(x, -0.55, z), PLANK, Enum.Material.Wood) end end
+		part(m, Vector3.new(0.15, 1.2, 1.2), CFrame.new(0, -0.08, 0) * CFrame.Angles(0, 0, rad(90)), Color3.fromRGB(200, 200, 205), Enum.Material.Metal, Enum.PartType.Cylinder)
+		local roast = ball(m, 0.8, CFrame.new(0, 0.2, 0), Color3.fromRGB(150, 80, 40), Enum.Material.SmoothPlastic)
+		roast.Size = Vector3.new(0.9, 0.55, 0.7)
+		for i = 1, 4 do potato(m, CFrame.new(-0.85 + (i % 2) * 0.25, 0.05, (i - 2.5) * 0.25), 0.8) end
+		part(m, Vector3.new(0.3, 0.5, 0.3), CFrame.new(0.8, 0.1, 0), BRASS, Enum.Material.Metal)
+		ball(m, 0.38, CFrame.new(0.8, 0.45, 0), BRASS, Enum.Material.Metal)
+	else
+		return nil
+	end
+	return m
+end
+
 -- Máquina de verdade da esteira da minha cozinha (vem escondida: mostra as peças).
 local MACHINE_OF = { Washer = "Washer", Cutter = "Cutter", Feeder = "Feeder", AutoPeel = "AutoPeeler", Drum = "Drum", Masher = "Masher" }
 
@@ -565,6 +739,8 @@ function ItemPreview.Make(parent: GuiObject, kind: string, id: string): Viewport
 		model = kitchenModel(id) or machineModel(id)
 	elseif kind == "Theme" then
 		model = themeModel(id)
+	elseif kind == "Pass" then
+		model = passModel(id)
 	end
 	if not model then
 		-- sem modelo (passes etc.): um selo simples

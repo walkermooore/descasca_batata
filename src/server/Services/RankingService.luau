@@ -55,7 +55,7 @@ end
 local function ensureWeek(data)
 	local w = RankingService.Week()
 	if data.Weekly.Week ~= w then
-		data.Weekly = { Week = w, Peeled = 0, Clean = 0, Race = 0 }
+		data.Weekly = { Week = w, Peeled = 0, Clean = 0, Race = 0, Duels = 0 }
 	end
 end
 
@@ -65,6 +65,8 @@ local function valueOf(data, id: string): number
 		return data.Weekly.Peeled
 	elseif id == "Clean" then
 		return data.Weekly.Clean or 0
+	elseif id == "Duels" then
+		return data.Weekly.Duels or 0
 	elseif id == "Race" then
 		return data.Weekly.Race
 	elseif id == "Rebirths" then
@@ -227,13 +229,21 @@ local function push()
 	end
 end
 
+-- Duelo vencido: conta no ranking semanal.
+function RankingService.AddDuelWin(player: Player)
+	local data = S.Data.Get(player)
+	if data then
+		ensureWeek(data)
+		data.Weekly.Duels = (data.Weekly.Duels or 0) + 1
+	end
+end
+
 local function refreshBoards()
-	local hub = Workspace:FindFirstChild("World") and Workspace.World:FindFirstChild("Hub")
-	local boards = hub and hub:FindFirstChild("RankBoards")
-	if not boards then
+	local world = Workspace:FindFirstChild("World")
+	if not world then
 		return
 	end
-	for _, b in boards:GetChildren() do
+	for _, b in world:GetDescendants() do
 		local id = b:GetAttribute("Board")
 		local list = b:FindFirstChild("List", true) :: TextLabel?
 		if id and list then

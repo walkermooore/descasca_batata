@@ -23,6 +23,7 @@ local ORDER = {
 	{ "Orders", "OrderController" },
 	{ "Tutorial", "TutorialController" },
 	{ "Peel", "PeelController" },
+	{ "Duel", "DuelController" },
 	{ "Dev", "DevController" },
 	{ "Localizer", "LocalizerController" }, -- por último: traduz o que os outros criaram
 }

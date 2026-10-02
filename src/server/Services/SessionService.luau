@@ -1,5 +1,5 @@
 -- SessionService: estado de sessão de cada jogador e a máquina de estados da seção 2.3.
--- Estados: Loading, Free, Holding, Peeling, CarryingBucket.
+-- Estados: Loading, Free, Holding, Peeling, CarryingBucket, Duel (sentado na mesa do duelo).
 -- Também publica em atributos do Player o que o cliente precisa saber do save
 -- (ferramenta, itens, chaves, fragmentos, passo do tutorial).
 
@@ -26,7 +26,7 @@ local function applyMovement(player: Player)
 	end
 	-- passe Carrinho Turbo: +40% de velocidade ao andar
 	local speed = StarterPlayer.CharacterWalkSpeed * (if S and S.Monetization then S.Monetization.SpeedMultiplier(player) else 1)
-	if s.State == "Peeling" or s.State == "Loading" then
+	if s.State == "Peeling" or s.State == "Loading" or s.State == "Duel" then
 		hum.WalkSpeed = if s.State == "Loading" then speed else 0
 		hum.JumpHeight = if s.State == "Loading" then StarterPlayer.CharacterJumpHeight else 0
 	elseif s.State == "CarryingBucket" then

@@ -217,7 +217,11 @@ function BeltService.AutoRate(player: Player?): number
 	if not player then
 		return 0
 	end
-	return BeltService.UpgradeValue(player, "AutoPeel") + BeltService.UpgradeValue(player, "Drum")
+	local rate = BeltService.UpgradeValue(player, "AutoPeel") + BeltService.UpgradeValue(player, "Drum")
+	if S.Monetization and S.Monetization.HasPass(player, "MaquinasTurbo") then
+		rate *= 1 + Config.GamePassesById.MaquinasTurbo.AutoBonus
+	end
+	return rate
 end
 
 function BeltService.AutoCoinsPerMinute(player: Player): number

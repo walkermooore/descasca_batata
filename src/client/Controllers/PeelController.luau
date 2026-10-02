@@ -73,6 +73,21 @@ local board: Part? = nil
 
 local buildView -- definida mais abaixo
 
+-- Onde descascar: a mesa do duelo (se estiver sentado numa) ou a mesa da cozinha.
+-- A mesa do duelo tem a mesma estrutura da cozinha (Station.Table.TableTop).
+local function station(): Model?
+	local seat = player:GetAttribute("DuelSeat")
+	if seat then
+		local world = Workspace:FindFirstChild("World")
+		local arena = world and world:FindFirstChild("Arena")
+		local m = arena and arena:FindFirstChild("Seats") and arena.Seats:FindFirstChild("Seat" .. seat)
+		if m then
+			return m :: Model
+		end
+	end
+	return C.Kitchen.GetMine()
+end
+
 local RESULT_TEXT = { Perfect = Strings.Perfect, Good = Strings.Good, Bad = Strings.Bad }
 local RESULT_COLOR = {
 	Perfect = Color3.fromRGB(240, 200, 80),
@@ -403,6 +418,19 @@ local function buildKnife()
 		local rusty = toolId == "FacaCega"
 		piece("Blade", Vector3.new(0.05, 0.2, 0.6), CFrame.new(0, 0, -0.15), if rusty then Color3.fromRGB(120, 88, 62) else Color3.fromRGB(165, 165, 165), if rusty then Enum.Material.CorrodedMetal else Enum.Material.Metal)
 	end
+	-- passe Faca de Ouro do Rei: a ferramenta vira ouro e solta faíscas (só visual)
+	if string.find("," .. (player:GetAttribute("Passes") or "") .. ",", ",FacaDeOuro,", 1, true) then
+		for _, p in m:GetChildren() do
+			if p:IsA("BasePart") and p.Material ~= Enum.Material.Neon then
+				p.Color = Color3.fromRGB(236, 190, 64)
+				p.Material = Enum.Material.Metal
+				p.Reflectance = 0.25
+			end
+		end
+		local sp = Instance.new("Sparkles")
+		sp.SparkleColor = Color3.fromRGB(255, 220, 120)
+		sp.Parent = root
+	end
 	m.PrimaryPart = root
 	m.WorldPivot = CFrame.new()
 	m:ScaleTo(1.6) -- legível no close
@@ -539,7 +567,11 @@ local function arrive(r)
 	C.Effects.Play("Splash")
 	C.Effects.Burst(r.DestPos, "Splash", Vector3.yAxis)
 	if ui.Gui.Enabled then
-		popup("+" .. Format.Coins(r.Value), C.HUD.Theme.Gold, r.DestPos + Vector3.new(0, 0.6, 0), 34, 40)
+		if r.Dest == "Duel" then
+			popup("+1", C.HUD.Theme.Gold, r.DestPos + Vector3.new(0, 0.6, 0), 40, 44)
+		else
+			popup("+" .. Format.Coins(r.Value), C.HUD.Theme.Gold, r.DestPos + Vector3.new(0, 0.6, 0), 34, 40)
+		end
 	end
 	if r.Dest == "Hand" then
 		C.HUD.Toast(Strings.PutOnBelt, C.HUD.Theme.Gold)
@@ -630,6 +662,9 @@ local function commitStroke(s)
 	local cut = s.Cut
 	if #cut == 0 and s.Flesh == 0 then
 		return -- só passou no ar
+	end
+	if not view then
+		return -- a batata sumiu no meio da passada (ex.: o duelo acabou)
 	end
 	local duration = math.clamp(os.clock() - s.Start, Config.Peel.Free.MinDuration, Config.Peel.Free.MaxDuration)
 	local assisted = player:GetAttribute("Assisted") == true
@@ -751,7 +786,7 @@ local function onResult(r)
 		if finishing and not finishing.Flying then
 			-- a batata "terminou" só na previsão: volta como estava
 			finishing = nil
-			local K = C.Kitchen.GetMine()
+			local K = station()
 			if K and active then
 				buildView(K)
 			end
@@ -909,7 +944,7 @@ function Peel.OnHeldChanged()
 	local id = player:GetAttribute("HeldId")
 	if id and id ~= viewId and player:GetAttribute("State") == "Peeling" then
 		stroke = nil
-		local K = C.Kitchen.GetMine()
+		local K = station()
 		if K then
 			buildView(K)
 			refreshHint()
@@ -918,7 +953,7 @@ function Peel.OnHeldChanged()
 end
 
 local function enter()
-	local K = C.Kitchen.GetMine()
+	local K = station()
 	if not K or active then
 		return
 	end

@@ -63,6 +63,11 @@ local function rollType(player: Player): string
 	if not data or data.Tutorial.Step < TUTORIAL_DONE or data.Stats.PotatoesPicked == 0 then
 		return "Comum"
 	end
+	-- Caixa de Batatas Douradas: as próximas N são douradas
+	if (data.GoldenForced or 0) > 0 then
+		data.GoldenForced -= 1
+		return "Dourada"
+	end
 	-- Bússola Dourada: garante a dourada dentro das próximas N batatas
 	if data.GoldenPity > 0 then
 		data.GoldenPity -= 1
@@ -365,6 +370,32 @@ end
 
 -- ---------------------------------------------------------------- ações
 
+-- Duelo: a mesa do duelo funciona como uma "cozinha" especial (Kd.IsDuel). A batata vai
+-- direto para a mão já no modo Descascar; cada batata pronta vale 1 ponto (Kd.OnFinish) e a
+-- próxima entra na hora. Não paga Moedas nem conta para missões.
+function PeelService.DuelGive(player: Player, Kd): boolean
+	local s = S.Session.Get(player)
+	if not s then
+		return false
+	end
+	if s.Held then
+		PeelService.DestroyPotato(s.Held)
+		s.Held = nil
+	end
+	if s.Extra then
+		PeelService.DestroyPotato(s.Extra)
+		s.Extra = nil
+	end
+	local P = newPotato(Kd, "Comum")
+	if not hold(player, P, "Peeling") then
+		PeelService.DestroyPotato(P)
+		return false
+	end
+	s.StrokeTimes = {}
+	s.LastStrokeAt = os.clock()
+	return true
+end
+
 -- Pilha: enche o carrinho de mão (se tiver) e põe batata na mão livre.
 function PeelService.GivePotato(player: Player, K)
 	local s = S.Session.Get(player)
@@ -420,7 +451,7 @@ end
 
 local function drop(player: Player)
 	local s = S.Session.Get(player)
-	if not s or s.State ~= "Holding" or not s.Held then
+	if not s or s.State ~= "Holding" or not s.Held or s.Held.Kitchen.IsDuel then
 		return
 	end
 	local P = s.Held
@@ -492,7 +523,7 @@ end
 -- "Parar": devolve a batata à mesa com as faixas já removidas.
 local function stopPeel(player: Player)
 	local s = S.Session.Get(player)
-	if not s or s.State ~= "Peeling" or not s.Held then
+	if not s or s.State ~= "Peeling" or not s.Held or s.Held.Kitchen.IsDuel then
 		return
 	end
 	local P = s.Held
@@ -525,7 +556,7 @@ end
 -- Batata podre: "Descartar" joga na lixeira da mesa e paga 15 (se ainda não foi estragada).
 local function discard(player: Player)
 	local s = S.Session.Get(player)
-	if not s or (s.State ~= "Holding" and s.State ~= "Peeling") or not s.Held then
+	if not s or (s.State ~= "Holding" and s.State ~= "Peeling") or not s.Held or s.Held.Kitchen.IsDuel then
 		return
 	end
 	local P = s.Held
@@ -621,6 +652,23 @@ end
 -- ocupada) ela vai sozinha para a esteira e a próxima já entra no modo Descascar; sem eles,
 -- fica na mão para o jogador levar até a esteira.
 local function finishPotato(player: Player, s, P, K, combo: number, comboMult: number)
+	if K.IsDuel then
+		local cfgF = Config.Peel.Free
+		local y = math.clamp(1 - P.Penalty, cfgF.MinYield, 1)
+		local pos = K.TableTop.Position
+		PeelService.DestroyPotato(P)
+		s.Held = nil
+		if K.OnFinish then
+			K.OnFinish(player)
+		end
+		if K.Active then
+			PeelService.DuelGive(player, K)
+		else
+			publishHands(player)
+			S.Session.SetState(player, "Free")
+		end
+		return 0, y, "Duel", pos, nil
+	end
 	local pdata = S.Data.Get(player)
 	local cfg = Config.Peel.Free
 	local def = Config.Potatoes[P.Type]

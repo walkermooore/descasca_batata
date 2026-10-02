@@ -101,8 +101,13 @@ local function catalog(tab: string)
 		end
 	end
 	if tab == "Passes" then
+		table.insert(rows, { Id = "HeaderPasses", Header = "Passes (para sempre)" })
 		for _, p in Config.GamePasses do
-			table.insert(rows, { Id = p.Id, Name = p.Name, Desc = p.Desc, Robux = p.Price, Soon = true })
+			table.insert(rows, { Id = p.Id, Name = p.Name, Desc = p.Desc, Robux = p.Price, IsPass = true, Soon = p.PassId == 0 })
+		end
+		table.insert(rows, { Id = "HeaderProducts", Header = "Pacotes (uso único)" })
+		for _, p in Config.Products do
+			table.insert(rows, { Id = p.Id, Name = p.Name, Desc = p.Desc, Robux = p.Price, IsProduct = true, Soon = p.ProductId == 0 })
 		end
 	end
 	if tab == "Cosmeticos" then
@@ -132,7 +137,28 @@ local function request(action: string, id: string)
 	Shop.Refresh()
 end
 
+local function passOwned(id: string): boolean
+	return string.find("," .. (player:GetAttribute("Passes") or "") .. ",", "," .. id .. ",", 1, true) ~= nil
+end
+
 local function row(r, order: number, ownedSet, coins: number)
+	if r.Header then
+		-- dentro de um Frame: o Refresh apaga os Frames da lista ao trocar de aba
+		local hf = Instance.new("Frame")
+		hf.Name = r.Id
+		hf.LayoutOrder = order
+		hf.BackgroundTransparency = 1
+		hf.Size = UDim2.new(1, -8, 0, 30)
+		hf.Parent = list
+		C.HUD.Label(hf, {
+			Text = r.Header,
+			Font = T.FontTitle,
+			TextColor3 = T.Gold,
+			TextXAlignment = Enum.TextXAlignment.Left,
+			Size = UDim2.fromScale(1, 1),
+		})
+		return hf
+	end
 	local f = Instance.new("Frame")
 	f.Name = r.Id
 	f.LayoutOrder = order
@@ -301,6 +327,19 @@ local function row(r, order: number, ownedSet, coins: number)
 				end
 			end)
 		end
+	elseif r.IsPass and passOwned(r.Id) then
+		b.Text = Strings.Owned
+		b.BackgroundColor3 = T.Panel
+		b.TextColor3 = T.Dim
+	elseif (r.IsPass or r.IsProduct) and not r.Soon then
+		b.Text = string.format(Strings.Robux, r.Robux)
+		b.BackgroundColor3 = Color3.fromRGB(46, 120, 70)
+		b.TextColor3 = T.Bone
+		b.Activated:Connect(function()
+			pcall(function()
+				Remotes.Store:InvokeServer(if r.IsPass then "PromptPass" else "PromptProduct", r.Id)
+			end)
+		end)
 	elseif r.Soon then
 		b.Text = if r.Robux then string.format(Strings.Robux, r.Robux) .. " · " .. Strings.Soon else Strings.Soon
 		b.BackgroundColor3 = T.Panel

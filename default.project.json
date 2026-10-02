@@ -11,6 +11,7 @@
         "BuildRequest": { "$className": "RemoteFunction" },
         "Delivered": { "$className": "RemoteEvent" },
         "DevRequest": { "$className": "RemoteFunction" },
+        "Duel": { "$className": "RemoteEvent" },
         "Notify": { "$className": "RemoteEvent" },
         "Offer": { "$className": "RemoteEvent" },
         "OrderAction": { "$className": "RemoteEvent" },

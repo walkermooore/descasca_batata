@@ -394,11 +394,26 @@ Config.Race = {
 	Rewards = { 600, 300, 150, 75 },
 }
 
+-- Duelo de Descasque (arena ao lado do lobby): dois jogadores em mesas frente a frente;
+-- quem descascar mais batatas no tempo vence. O guarda do Rei atira em quem perder.
+Config.Duel = {
+	Duration = 60, -- s de descasque
+	Countdown = 4, -- s de contagem antes de começar
+	WinCoins = 250, -- prêmio base de quem vence
+	StreakBonus = 50, -- +50 por vitória seguida
+	MaxStreakBonus = 500,
+	TieCoins = 60, -- empate: os dois ganham isto e ninguém leva tiro
+	ShotDelay = 1.6, -- s entre o resultado e o tiro
+	SeatRange = 9, -- se o jogador se afastar mais que isto da mesa, desiste
+
+}
+
 -- Rankings (OrderedDataStore). Semana começa na segunda-feira 00:00 UTC.
 Config.Rankings = {
 	Boards = {
 		{ Id = "Peeled", Label = "Batatas na semana", Weekly = true },
 		{ Id = "Clean", Label = "Batatas perfeitas da semana", Weekly = true },
+		{ Id = "Duels", Label = "Duelos vencidos na semana", Weekly = true },
 		{ Id = "Race", Label = "Corrida da semana", Weekly = true },
 		{ Id = "Rebirths", Label = "Rebirths", Weekly = false },
 	},
@@ -441,7 +456,12 @@ Config.GamePasses = {
 	{ Id = "VIP", PassId = 0, Name = "VIP da Cozinha Real", Price = 299, CoinBonus = 0.20, OfferAt = "FirstRebirth", Desc = "+20% Moedas, tag no chat, área VIP." },
 	{ Id = "SorteDourada", PassId = 0, Name = "Sorte Dourada", Price = 349, GoldenBonus = 0.5, OfferAt = "FirstGolden", Desc = "+50% de chance de batata dourada." },
 	{ Id = "MoedasX2", PassId = 0, Name = "Moedas x2", Price = 399, CoinMultiplier = 2, Desc = "Dobra todas as Moedas, para sempre." },
-	{ Id = "ChefLendario", PassId = 0, Name = "Chef Lendário", Price = 199, Desc = "Chapéu animado e rastro de casca brilhante." },
+	{ Id = "ChefLendario", PassId = 0, Name = "Chef Lendário", Price = 199, Desc = "Chapéu de chef dourado e rastro brilhante ao andar." },
+	{ Id = "BatataPet", PassId = 0, Name = "Batata de Estimação", Price = 149, Desc = "Uma batatinha de chapéu que segue você por todo o acampamento." },
+	{ Id = "FacaDeOuro", PassId = 0, Name = "Faca de Ouro do Rei", Price = 129, Desc = "Sua faca vira ouro e solta faíscas ao descascar (só visual)." },
+	{ Id = "CarrinhoDeOuro", PassId = 0, Name = "Carrinho de Ouro", Price = 99, Desc = "O carrinho da sua cozinha brilha em ouro (só visual)." },
+	{ Id = "Duelista", PassId = 0, Name = "Duelista do Rei", Price = 199, DuelCoinBonus = 1, Desc = "+100% de Moedas ao vencer duelos e coroa de duelista na cabeça." },
+	{ Id = "MaquinasTurbo", PassId = 0, Name = "Máquinas Turbo", Price = 249, AutoBonus = 0.5, Desc = "Descascador automático e tambor produzem +50% batatas." },
 }
 Config.GamePassesById = {}
 for _, p in Config.GamePasses do
@@ -459,6 +479,8 @@ Config.Products = {
 	{ Id = "Bussola", ProductId = 0, Name = "Bússola Dourada", Price = 49, GoldenWithin = 50, Desc = "Garante uma batata dourada nas próximas 50." },
 	{ Id = "PedidoRelampago", ProductId = 0, Name = "Pedido Relâmpago", Price = 25, Desc = "Chama um pedido especial do Rei agora." },
 	{ Id = "PassePremium", ProductId = 0, Name = "Passe de Temporada Premium", Price = 499, Desc = "Trilha premium do passe de temporada." },
+	{ Id = "CaixaDourada", ProductId = 0, Name = "Caixa de Batatas Douradas", Price = 99, GoldenNext = 3, Desc = "As próximas 3 batatas que você pegar serão douradas." },
+	{ Id = "Banquete", ProductId = 0, Name = "Banquete do Rei", Price = 199, ServerBoostMult = 2, ServerBoostMinutes = 15, Desc = "O SERVIDOR INTEIRO ganha Moedas x2 por 15 min, e seu nome é anunciado." },
 }
 Config.ProductsById = {}
 for _, p in Config.Products do

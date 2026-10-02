@@ -15,6 +15,13 @@ da cozinha (carrinho maior, esteira mais rápida, descascador automático).
 
 Os `RemoteEvent`/`RemoteFunction` de `ReplicatedStorage.Remotes` são criados pelo `default.project.json`.
 
+## Duelo de Descasque (PvP)
+
+Arena a leste da praça (`Workspace.World.Arena`): dois jogadores sentam nas mesas frente a frente,
+descascam por 60 s e quem fizer mais batatas vence (Moedas + ranking semanal "Duelos vencidos").
+O guarda do Rei atira em quem perde. Só jogador contra jogador. Lógica em
+`src/server/Services/DuelService.luau` e tela em `src/client/Controllers/DuelController.luau`.
+
 ## O que NÃO está aqui
 
 O mapa (cozinhas, esteiras, pátio, Salão do Rei, terreno, cerca, torres) e os modelos/malhas

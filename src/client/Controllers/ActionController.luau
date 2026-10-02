@@ -85,6 +85,9 @@ DEFS.Belt = {
 local function compute()
 	local state = player:GetAttribute("State")
 	local list = {}
+	if player:GetAttribute("InDuel") then
+		return list -- no duelo não dá para parar nem soltar a batata
+	end
 	local near = C.Kitchen.DistanceToTable() <= Config.Interaction.PeelRange
 	-- batata podre: descartar na lixeira da mesa
 	if (state == "Holding" or state == "Peeling") and near and player:GetAttribute("HeldType") == "Podre" then
