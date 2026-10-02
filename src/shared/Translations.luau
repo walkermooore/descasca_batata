@@ -541,4 +541,9 @@ return {
 	{ "Comprado", "Owned", "Comprado" },
 	{ "Passes (para sempre)", "Passes (forever)", "Pases (para siempre)" },
 	{ "Pacotes (uso único)", "Packs (one-time)", "Paquetes (un solo uso)" },
+	{ "Visite cozinhas e curta as melhores.", "Visit kitchens and like the best ones.", "Visita cocinas y dale me gusta a las mejores." },
+	{ "Ir para a Arena", "Go to the Arena", "Ir a la Arena" },
+	{ "Voltar para a cozinha", "Back to the kitchen", "Volver a la cocina" },
+	{ "Arena de Duelo", "Duel Arena", "Arena de Duelo" },
+	{ "Sua cozinha", "Your kitchen", "Tu cocina" },
 }

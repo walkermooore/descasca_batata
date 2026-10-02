@@ -31,7 +31,7 @@ local lastShown = ""
 
 local function arena(): Instance?
 	local world = Workspace:FindFirstChild("World")
-	return world and world:FindFirstChild("Arena")
+	return world and world:FindFirstChild(player:GetAttribute("DuelArena") or "Arena")
 end
 
 local function label(parent: Instance, props): TextLabel
@@ -185,8 +185,34 @@ local function update()
 	lastShown = ""
 end
 
+-- tela escurece rápido ao atravessar a porta cozinha <-> arena
+local function fade()
+	local f = Instance.new("Frame")
+	f.Position = UDim2.fromOffset(0, -80) -- cobre também a barra do topo
+	f.Size = UDim2.new(1, 0, 1, 160)
+	f.BackgroundColor3 = Color3.fromRGB(8, 6, 5)
+	f.BackgroundTransparency = 1
+	f.BorderSizePixel = 0
+	f.ZIndex = 50
+	f.Parent = gui
+	local tin = TweenService:Create(f, TweenInfo.new(0.25), { BackgroundTransparency = 0 })
+	tin:Play()
+	tin.Completed:Once(function()
+		task.wait(0.25)
+		local tout = TweenService:Create(f, TweenInfo.new(0.35), { BackgroundTransparency = 1 })
+		tout:Play()
+		tout.Completed:Once(function()
+			f:Destroy()
+		end)
+	end)
+end
+
 local function onEvent(kind: string, d)
 	local T = C.HUD.Theme
+	if kind == "Travel" then
+		fade()
+		return
+	end
 	if kind == "Seated" then
 		C.HUD.Toast("Esperando um adversário sentar na outra mesa...", T.Gold)
 	elseif kind == "Start" then

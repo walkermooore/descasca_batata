@@ -79,7 +79,7 @@ local function station(): Model?
 	local seat = player:GetAttribute("DuelSeat")
 	if seat then
 		local world = Workspace:FindFirstChild("World")
-		local arena = world and world:FindFirstChild("Arena")
+		local arena = world and world:FindFirstChild(player:GetAttribute("DuelArena") or "Arena")
 		local m = arena and arena:FindFirstChild("Seats") and arena.Seats:FindFirstChild("Seat" .. seat)
 		if m then
 			return m :: Model

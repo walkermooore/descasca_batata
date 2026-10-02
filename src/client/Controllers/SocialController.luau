@@ -20,7 +20,7 @@ local panel: Frame
 local list: ScrollingFrame
 local tabButtons = {}
 local tab = "Cozinhas"
-local rankBoard = "Peeled"
+local rankBoard = "Clean"
 local rankScope = "Global"
 local invitePopup: Frame
 local inviteText: TextLabel
@@ -109,7 +109,7 @@ local function fillKitchens()
 	if not res or not res.Rows then
 		return
 	end
-	note(0, "Visite cozinhas e curta as melhores. As mais curtidas aparecem no mural da praça.")
+	note(0, "Visite cozinhas e curta as melhores.")
 	local own = player:GetAttribute("OwnKitchenIndex")
 	for _, k in res.Rows do
 		local title = if k.Owner then string.format("Lote %d · %s", k.Index, k.Owner) else string.format("Lote %d · livre", k.Index)

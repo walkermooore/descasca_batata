@@ -411,7 +411,6 @@ Config.Duel = {
 -- Rankings (OrderedDataStore). Semana começa na segunda-feira 00:00 UTC.
 Config.Rankings = {
 	Boards = {
-		{ Id = "Peeled", Label = "Batatas na semana", Weekly = true },
 		{ Id = "Clean", Label = "Batatas perfeitas da semana", Weekly = true },
 		{ Id = "Duels", Label = "Duelos vencidos na semana", Weekly = true },
 		{ Id = "Race", Label = "Corrida da semana", Weekly = true },
