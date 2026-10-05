@@ -1,5 +1,5 @@
 -- CastleService: zona proibida em frente ao castelo do Rei (World.KingsHall).
--- Quem entra na zona recebe um aviso ("Afaste-se do castelo!"); se continuar lá por
+-- Quem entra na zona vê a tela vermelha com a contagem (atributo CastleShootAt); se continuar lá por
 -- Config.Castle.Grace segundos, o guarda mais próximo do castelo (World.Guards com o
 -- atributo CastleGuard) atira — mesmo efeito do duelo: clarão, rastro e som — e o jogador morre.
 
@@ -104,15 +104,20 @@ local function scan()
 		local hrp = char and char:FindFirstChild("HumanoidRootPart") :: BasePart?
 		local hum = char and char:FindFirstChildOfClass("Humanoid")
 		if not hrp or not hum or hum.Health <= 0 or not inZone(hrp.Position) then
-			enteredAt[p] = nil
+			if enteredAt[p] then
+				enteredAt[p] = nil
+				p:SetAttribute("CastleShootAt", nil)
+			end
 			continue
 		end
 		local t = enteredAt[p]
 		if not t then
 			enteredAt[p] = now
-			S.Kitchen.Notify(p, "Afaste-se do castelo!")
+			-- o cliente mostra a tela vermelha com a contagem até o tiro
+			p:SetAttribute("CastleShootAt", Workspace:GetServerTimeNow() + cfg.Grace)
 		elseif now - t >= cfg.Grace then
 			enteredAt[p] = nil
+			p:SetAttribute("CastleShootAt", nil)
 			shoot(p)
 		end
 	end

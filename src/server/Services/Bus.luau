@@ -2,7 +2,7 @@
 -- sem que um serviço precise conhecer o outro.
 --   PotatoPicked(player, P)      PotatoFinished(player, info)   ComboChanged(player, combo)
 --   BucketDumped(player, count)  CartSent(player)               Delivered(player, amount, count)
---   Purchased(player, itemId)
+--   Purchased(player, itemId)     MachinePotato(owner, item)
 
 local Bus = {}
 

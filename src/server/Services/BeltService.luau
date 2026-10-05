@@ -115,9 +115,18 @@ function BeltService.Push(K, item): boolean
 		return false
 	end
 	local def = Config.Potatoes[item.Type] or Config.Potatoes.Comum
-	local p = S.Kitchen.MiniPotato(def.FleshColor, PEELED_SIZE)
+	-- polpa fosca e um pouco mais escura: a esfera de plástico brilhava demais sob as lâmpadas
+	local h, s, v = def.FleshColor:ToHSV()
+	local p = S.Kitchen.MiniPotato(Color3.fromHSV(h, s * 0.9, v * 0.8), PEELED_SIZE)
 	p.Name = "BeltPotato"
-	p.Material = Enum.Material.Plastic -- fosca, como no close
+	local mesh = p:FindFirstChildOfClass("SpecialMesh")
+	if mesh then
+		mesh:Destroy() -- a malha esférica ignora o material; a bola mostra a textura fosca
+	end
+	p.Shape = Enum.PartType.Ball
+	p.Size = Vector3.one * PEELED_SIZE.Y * 1.1
+	p.Material = Enum.Material.Sand
+	p.Reflectance = 0
 	p.CastShadow = true
 	p.Anchored = true
 	p.CFrame = CFrame.new(st.Path[1]) * CFrame.Angles(0, rng:NextNumber(0, 6.28), 0)
@@ -248,11 +257,13 @@ local function tickKitchen(K, dt: number)
 		if rate > 0 then
 			st.AutoAcc += rate / 60 * dt
 			while st.AutoAcc >= 1 do
-				if not BeltService.Push(K, { Value = autoValue(K.Owner), Type = "Comum", Machine = true }) then
+				local item = { Value = autoValue(K.Owner), Type = "Comum", Machine = true }
+				if not BeltService.Push(K, item) then
 					st.AutoAcc = math.min(st.AutoAcc, 1) -- esteira lotada: a máquina espera
 					break
 				end
 				st.AutoAcc -= 1
+				S.Bus.Fire("MachinePotato", K.Owner, item) -- conta nos pedidos do Rei
 			end
 		end
 	end

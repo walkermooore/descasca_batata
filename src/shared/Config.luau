@@ -249,8 +249,13 @@ Config.Collection = {
 Config.Upgrades = {
 	{
 		Id = "Cart", Name = "Carrinho maior", Unit = "batatas por viagem",
-		Desc = "Mais batatas por viagem ao Rei. O carrinho parte sozinho quando enche.",
+		Desc = "Mais batatas por viagem ao Rei.",
 		Levels = { { Value = 5 }, { Value = 10, Cost = 80 }, { Value = 20, Cost = 400 }, { Value = 35, Cost = 1500 }, { Value = 50, Cost = 5000 }, { Value = 80, Cost = 20000 }, { Value = 120, Cost = 80000 } },
+	},
+	{
+		Id = "AutoSend", Name = "Despacho automático", Unit = "", Toggle = true,
+		Desc = "Um sino no carrinho: quando ele enche, parte sozinho para o Rei. Sem ele, aperte Enviar.",
+		Levels = { { Value = 0 }, { Value = 1, Cost = 400 } },
 	},
 	{
 		Id = "Feeder", Name = "Alimentador automático", Unit = "", Toggle = true,
@@ -401,7 +406,7 @@ Config.Castle = {
 	ZoneMaxZ = -54, -- z menor que isto = perto do castelo
 	ZoneMinX = -110,
 	ZoneMaxX = 110,
-	Grace = 1.5, -- s
+	Grace = 3, -- s (contagem vermelha na tela)
 }
 
 -- Duelo de Descasque (arena ao lado do lobby): dois jogadores em mesas frente a frente;

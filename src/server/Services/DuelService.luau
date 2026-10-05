@@ -463,7 +463,15 @@ local function hookDoors()
 	if lobby then
 		for _, d in Workspace:WaitForChild("Kitchens"):GetDescendants() do
 			if d:IsA("ProximityPrompt") and d.Name == "LobbyPrompt" then
+				local kitchen = d:FindFirstAncestor("Kitchens") and d:FindFirstAncestorWhichIsA("Model")
+				while kitchen and kitchen:GetAttribute("KitchenIndex") == nil do
+					kitchen = kitchen:FindFirstAncestorWhichIsA("Model")
+				end
 				d.Triggered:Connect(function(player: Player)
+					-- só de dentro da cozinha (a porta fica na parede)
+					if kitchen and not S.Kitchen.IsInside(kitchen, player) then
+						return
+					end
 					travel(player, lobby.CFrame)
 				end)
 			end

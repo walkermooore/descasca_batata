@@ -4,6 +4,7 @@
 local Players = game:GetService("Players")
 local CollectionService = game:GetService("CollectionService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Workspace = game:GetService("Workspace")
 
 local Strings = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Strings"))
 local Config = require(ReplicatedStorage.Shared:WaitForChild("Config"))
@@ -20,13 +21,24 @@ local function kitchenOf(prompt: Instance): Model?
 	return m
 end
 
+-- O jogador está entre as paredes desta cozinha? (o alcance dos prompts passava pela parede)
+local function insideKitchen(K: Model): boolean
+	local hrp = player.Character and player.Character:FindFirstChild("HumanoidRootPart") :: BasePart?
+	local floor = K:FindFirstChild("Floor") :: BasePart?
+	if not hrp or not floor then
+		return false
+	end
+	local p = floor.CFrame:PointToObjectSpace(hrp.Position)
+	return math.abs(p.X) < floor.Size.X / 2 and math.abs(p.Z) < floor.Size.Z / 2 and p.Y > -3 and p.Y < 12
+end
+
 local function evaluate(prompt: ProximityPrompt)
 	local K = kitchenOf(prompt)
 	local mine = K ~= nil and K:GetAttribute("KitchenIndex") == player:GetAttribute("KitchenIndex")
 	local state = player:GetAttribute("State")
 	local kind = prompt:GetAttribute("Kind")
 	local on = false
-	if mine and K then
+	if mine and K and insideKitchen(K) then
 		local hands = player:GetAttribute("Hands") or 1
 		local freeHand = state == "Holding" and hands >= 2 and player:GetAttribute("ExtraHeld") == nil
 		if kind == "Pile" then
@@ -61,11 +73,35 @@ local function evaluate(prompt: ProximityPrompt)
 end
 
 function Prompts.Init()
+	-- outros prompts dentro das cozinhas (Intendência, porta vermelha do lobby): só de dentro
+	local others: { [ProximityPrompt]: Model } = {}
+	local function track(d: Instance)
+		if d:IsA("ProximityPrompt") and not CollectionService:HasTag(d, "KitchenPrompt") then
+			local K = kitchenOf(d)
+			if K then
+				others[d] = K
+			end
+		end
+	end
+	local kitchens = Workspace:WaitForChild("Kitchens")
+	for _, d in kitchens:GetDescendants() do
+		track(d)
+	end
+	kitchens.DescendantAdded:Connect(track)
+	kitchens.DescendantRemoving:Connect(function(d)
+		others[d :: any] = nil
+	end)
 	task.spawn(function()
 		while true do
 			for _, p in CollectionService:GetTagged("KitchenPrompt") do
 				if p:IsA("ProximityPrompt") then
 					evaluate(p)
+				end
+			end
+			for p, K in others do
+				local inside = insideKitchen(K)
+				if p.Enabled ~= inside then
+					p.Enabled = inside
 				end
 			end
 			-- prompts do hub (portal da corrida)

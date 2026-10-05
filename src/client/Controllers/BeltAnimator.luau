@@ -158,7 +158,8 @@ local function step()
 						-- passou pelo cortador: vira um montinho de fritas douradas (só visual, neste cliente)
 						if info.CutterD and K:GetAttribute("CutterOn") and a * info.Len >= info.CutterD and not p:GetAttribute("Fries") then
 							p:SetAttribute("Fries", true)
-							p.Color = Color3.fromRGB(214, 170, 72)
+							p.Color = Color3.fromRGB(176, 132, 60)
+							p.Shape = Enum.PartType.Block
 							p.Size = Vector3.new(0.9, 0.35, 0.9)
 						end
 						local side = dir:Cross(Vector3.yAxis).Unit * (p:GetAttribute("Lane") or 0)

@@ -95,7 +95,7 @@ return {
 		[2] = "Vá até a mesa e aperte Descascar. Passe a faca pela casca do jeito que quiser. Cada passada tira uma faixa: gire a batata (A/D) e vá tirando faixa por faixa.",
 		[3] = "Coloque a batata pronta na esteira (o funil do lado da mesa) e descasque mais. (%d/%d)",
 		[4] = "Coloque a última na esteira. Ela leva as batatas até o carrinho.",
-		[5] = "Quando as batatas chegarem ao carrinho, mande pro Rei (ou espere encher: 5 batatas).",
+		[5] = "Quando as batatas chegarem ao carrinho, aperte Enviar para mandar pro Rei.",
 		[6] = "Completei suas moedas. Compre uma faca decente na Loja antes que o Rei perca a paciência.",
 		[7] = "Agora é com você. Fique de olho no quadro: o Rei faz pedidos.",
 	},

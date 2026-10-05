@@ -196,6 +196,10 @@ function OrderService.Init(services)
 		states[player] = nil
 	end)
 	S.Bus.Connect("PotatoFinished", onPotatoFinished)
+	-- batatas das máquinas (descascador automático, tambor) também contam no pedido
+	S.Bus.Connect("MachinePotato", function(player, item)
+		onPotatoFinished(player, { Type = item.Type, AvgYield = Config.MachineRules.MaxYield, Value = item.Value, Spoiled = false })
+	end)
 	Remotes.OrderAction.OnServerEvent:Connect(function(player, action)
 		if action == "Accept" then
 			OrderService.Accept(player)

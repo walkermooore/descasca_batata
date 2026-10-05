@@ -199,10 +199,15 @@ function KitchenService.AddToCart(K, item): boolean
 	table.insert(cart.Items, item)
 	cart.Value += item.Value
 	KitchenService.RefreshCart(K)
-	if #cart.Items >= cartCapacity(K) then
-		KitchenService.SendCart(K) -- cheio: parte sozinho para o Rei
+	if #cart.Items >= cartCapacity(K) and KitchenService.AutoSends(K) then
+		KitchenService.SendCart(K) -- cheio e com Despacho automático: parte sozinho para o Rei
 	end
 	return true
+end
+
+-- Sem o Despacho automático (melhoria da loja) o carrinho cheio espera alguém apertar Enviar.
+function KitchenService.AutoSends(K): boolean
+	return K.Owner ~= nil and S.Belt.UpgradeValue(K.Owner, "AutoSend") > 0
 end
 
 -- compatibilidade: quem ainda chama as funções do balde antigo não quebra
@@ -717,11 +722,23 @@ end
 
 -- ---------------------------------------------------------------- init
 
+-- O jogador está entre as paredes desta cozinha? (folga para o atraso da rede)
+function KitchenService.IsInside(model: Model, player: Player): boolean
+	local hrp = player.Character and player.Character:FindFirstChild("HumanoidRootPart") :: BasePart?
+	local floor = model:FindFirstChild("Floor") :: BasePart?
+	if not hrp or not floor then
+		return false
+	end
+	local p = floor.CFrame:PointToObjectSpace(hrp.Position)
+	local margin = 1.5
+	return math.abs(p.X) < floor.Size.X / 2 + margin and math.abs(p.Z) < floor.Size.Z / 2 + margin and p.Y > -3 and p.Y < 12
+end
+
 local function wirePrompt(prompt: ProximityPrompt, K)
 	prompt.Triggered:Connect(function(player)
 		local kind = prompt:GetAttribute("Kind")
-		if not KitchenService.CanUse(K, player) then
-			return
+		if not KitchenService.CanUse(K, player) or not KitchenService.IsInside(K.Model, player) then
+			return -- de fora da cozinha não vale (o alcance do prompt passava pela parede)
 		end
 		-- só o dono compra alas e aceita os pedidos do quadro da própria cozinha
 		if (kind == "Wing" or kind == "Order") and K.Owner ~= player then

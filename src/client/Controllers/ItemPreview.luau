@@ -332,6 +332,18 @@ local function kitchenModel(id: string): Model?
 		for i, x in { -0.7, 0.05, 0.75 } do
 			peeledPotato(m, CFrame.new(x, 0.26, (i - 2) * 0.12) * CFrame.Angles(0, i, 0), 1.2)
 		end
+	elseif id == "AutoSend" then
+		-- sino de latão num suporte de madeira com corda (o carrinho parte sozinho quando enche)
+		part(m, Vector3.new(0.16, 1.6, 0.16), CFrame.new(-0.55, 0, 0), WOOD, Enum.Material.Wood)
+		part(m, Vector3.new(0.8, 0.12, 0.14), CFrame.new(-0.2, 0.74, 0), WOOD, Enum.Material.Wood)
+		part(m, Vector3.new(0.6, 0.08, 0.6), CFrame.new(-0.55, -0.8, 0), IRON, Enum.Material.Metal)
+		cylY(m, 0.14, 0.05, CFrame.new(0.1, 0.62, 0), IRON, Enum.Material.Metal)
+		local dome = ball(m, 0.44, CFrame.new(0.1, 0.46, 0), BRASS, Enum.Material.Metal)
+		dome.Size = Vector3.new(0.44, 0.36, 0.44)
+		cylY(m, 0.36, 0.5, CFrame.new(0.1, 0.28, 0), BRASS, Enum.Material.Metal)
+		cylY(m, 0.08, 0.66, CFrame.new(0.1, 0.08, 0), BRASS, Enum.Material.Metal)
+		ball(m, 0.14, CFrame.new(0.1, 0.0, 0), IRON, Enum.Material.Metal)
+		part(m, Vector3.new(0.04, 0.6, 0.04), CFrame.new(0.32, -0.2, 0) * CFrame.Angles(0, 0, rad(12)), Color3.fromRGB(150, 120, 80), Enum.Material.Fabric)
 	elseif id == "Feeder" then
 		-- funil alimentador sobre pés e rampa até a mesa
 		local top, bot = 1.3, 0.5

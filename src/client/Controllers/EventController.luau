@@ -24,6 +24,9 @@ local raceFrame: Frame
 local raceTitle: TextLabel
 local raceBoard: TextLabel
 local emotePanel: Frame
+local castleGui: ScreenGui
+local castleTint: Frame
+local castleText: TextLabel
 
 local function clock(sec: number): string
 	sec = math.max(0, math.floor(sec))
@@ -57,6 +60,52 @@ local function update()
 		end
 		raceBoard.Text = table.concat(parts, "   ·   ")
 	end
+	-- perto do castelo: tela vermelha pulsando e contagem até os guardas atirarem
+	local shootAt = player:GetAttribute("CastleShootAt")
+	castleGui.Enabled = shootAt ~= nil
+	if shootAt then
+		local left = math.max(0, shootAt - now)
+		castleTint.BackgroundTransparency = 0.72 - 0.12 * math.abs(math.sin(os.clock() * 6))
+		castleText.Text = string.format("Afaste-se do castelo! Os guardas atiram em %d s", math.ceil(left))
+	end
+end
+
+local function buildCastleWarning()
+	castleGui = Instance.new("ScreenGui")
+	castleGui.Name = "CastleWarning"
+	castleGui.IgnoreGuiInset = true
+	castleGui.DisplayOrder = 50
+	castleGui.ResetOnSpawn = false
+	castleGui.Enabled = false
+	castleGui.Parent = player:WaitForChild("PlayerGui")
+	castleTint = Instance.new("Frame")
+	castleTint.Size = UDim2.fromScale(1, 1)
+	castleTint.BackgroundColor3 = Color3.fromRGB(150, 10, 10)
+	castleTint.BorderSizePixel = 0
+	castleTint.Parent = castleGui
+	-- bordas mais fortes que o centro
+	local grad = Instance.new("UIGradient")
+	grad.Transparency = NumberSequence.new({
+		NumberSequenceKeypoint.new(0, 0),
+		NumberSequenceKeypoint.new(0.3, 0.6),
+		NumberSequenceKeypoint.new(0.7, 0.6),
+		NumberSequenceKeypoint.new(1, 0),
+	})
+	grad.Parent = castleTint
+	local title = C.HUD.Label(castleGui, {
+		Text = "ZONA PROIBIDA",
+		TextColor3 = Color3.fromRGB(255, 220, 210),
+		Size = UDim2.new(0.6, 0, 0, 56),
+		Position = UDim2.new(0.2, 0, 0.28, 0),
+	})
+	title.TextStrokeTransparency = 0.2
+	castleText = C.HUD.Label(castleGui, {
+		Text = "",
+		TextColor3 = Color3.fromRGB(255, 236, 228),
+		Size = UDim2.new(0.7, 0, 0, 34),
+		Position = UDim2.new(0.15, 0, 0.28, 62),
+	})
+	castleText.TextStrokeTransparency = 0.2
 end
 
 local function buildEmotes(gui: ScreenGui)
@@ -191,6 +240,7 @@ function Events.Init(controllers)
 	end)
 
 	buildEmotes(gui)
+	buildCastleWarning()
 	RunService.Heartbeat:Connect(update)
 end
 
