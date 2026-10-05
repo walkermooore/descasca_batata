@@ -175,8 +175,8 @@ local function fillRace()
 	local queue = Workspace:GetAttribute("RaceQueue") or 0
 	note(0, string.format("Corrida de Descascar: %d s, de 2 a %d jogadores. Vence quem descascar mais com precisão. Prêmios: %s Moedas para o 1º.", Config.Race.Duration, Config.Race.MaxPlayers, Format.Int(Config.Race.Rewards[1])))
 	local a = row(1, "Fila da corrida", string.format("%d na fila  ·  estado: %s", queue, Workspace:GetAttribute("RaceState") or "Idle"))
-	if st == "Queued" or st == "Countdown" then
-		btn(a, "Sair da fila", 130, true, function()
+	if st ~= nil then
+		btn(a, if st == "Running" then "Sair da corrida" else "Sair da fila", 130, true, function()
 			request("RaceLeave")
 			task.wait(0.2)
 			Social.Refresh()

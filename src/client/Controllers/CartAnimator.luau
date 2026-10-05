@@ -1,6 +1,7 @@
 -- CartAnimator: anima os carrinhos de entrega no cliente a partir dos atributos do servidor
 -- (CartState + CartStateStart). O servidor só troca estados e números (seção 10).
 
+local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local Workspace = game:GetService("Workspace")
@@ -22,6 +23,7 @@ local function track(K: Model)
 	end
 	local root = cart:WaitForChild("Root") :: BasePart
 	local flag = cart:WaitForChild("Flag") :: BasePart
+	local countGui = root:WaitForChild("CountGui", 10) :: BillboardGui?
 	local home = cart:GetPivot()
 	local endPos = K:GetAttribute("CartEnd") or (home.Position + Vector3.new(0, 0, -56))
 	carts[K] = {
@@ -30,6 +32,7 @@ local function track(K: Model)
 		End = home + (endPos - home.Position),
 		FlagLocal = root.CFrame:ToObjectSpace(flag.CFrame),
 		Flag = flag,
+		CountGui = countGui,
 		AtHome = true,
 		FlagUp = false,
 	}
@@ -37,10 +40,18 @@ end
 
 local function step()
 	local now = Workspace:GetServerTimeNow()
+	local workIdx = Players.LocalPlayer:GetAttribute("KitchenIndex")
 	for K, c in carts do
 		if not K.Parent or not c.Model.Parent then
 			carts[K] = nil -- saiu do streaming; volta pelo ChildAdded
 			continue
+		end
+		-- o contador "0/5" só aparece para quem trabalha nesta cozinha (dono ou convidado)
+		if c.CountGui then
+			local mine = workIdx ~= nil and workIdx ~= 0 and K:GetAttribute("KitchenIndex") == workIdx
+			if c.CountGui.Enabled ~= mine then
+				c.CountGui.Enabled = mine
+			end
 		end
 		local state = K:GetAttribute("CartState") or "Home"
 		local start = K:GetAttribute("CartStateStart") or 0

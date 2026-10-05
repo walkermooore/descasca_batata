@@ -124,26 +124,72 @@ local function publishRace()
 	Workspace:SetAttribute("RaceBoard", table.concat(parts, ";"))
 end
 
-function EventService.Join(player: Player)
+-- quem entrou pelo portal precisa ficar perto dele enquanto espera na fila
+local joinedAtPortal: { [Player]: boolean } = {}
+
+function EventService.Join(player: Player, atPortal: boolean?)
 	if table.find(queue, player) or table.find(race.Players, player) then
 		return { Ok = false, Reason = "Você já está na corrida" }
 	end
 	table.insert(queue, player)
-	setRaceAttrs(player, "Queued")
+	joinedAtPortal[player] = atPortal == true or nil
+	setRaceAttrs(player, if race.State == "Countdown" then "Countdown" else "Queued")
 	publishRace()
 	S.Kitchen.Notify(player, "Na fila da Corrida de Descascar (" .. #queue .. " na fila)")
 	return { Ok = true }
 end
 
+-- Sair da corrida = sair da fila: tira o jogador da fila e, se a corrida já começou, da corrida.
 function EventService.Leave(player: Player)
+	joinedAtPortal[player] = nil
+	local left = false
 	local i = table.find(queue, player)
 	if i then
 		table.remove(queue, i)
-		setRaceAttrs(player, nil)
-		publishRace()
-		return { Ok = true }
+		left = true
 	end
-	return { Ok = false }
+	local j = table.find(race.Players, player)
+	if j then
+		table.remove(race.Players, j)
+		race.Scores[player] = nil
+		left = true
+	end
+	if left then
+		if player.Parent then
+			setRaceAttrs(player, nil)
+		end
+		if race.State == "Running" and #race.Players == 0 then
+			race.State = "Idle"
+			race.Scores = {}
+		end
+		publishRace()
+	end
+	return { Ok = left }
+end
+
+local function portalPad(): BasePart?
+	local hub = Workspace:FindFirstChild("World") and Workspace.World:FindFirstChild("Hub")
+	local portal = hub and hub:FindFirstChild("RacePortal")
+	return portal and portal:FindFirstChild("Pad") :: BasePart?
+end
+
+-- quem entrou pelo portal e se afastou dele antes da corrida começar sai da fila
+local function dropWanderers()
+	if race.State ~= "Idle" then
+		return
+	end
+	local pad = portalPad()
+	if not pad then
+		return
+	end
+	for i = #queue, 1, -1 do
+		local p = queue[i]
+		local hrp = joinedAtPortal[p] and p.Character and p.Character:FindFirstChild("HumanoidRootPart") :: BasePart?
+		if hrp and (hrp.Position - pad.Position).Magnitude > Config.Race.LeaveDistance then
+			EventService.Leave(p)
+			S.Kitchen.Notify(p, "Você se afastou do portal e saiu da fila da corrida.")
+		end
+	end
 end
 
 local function finishRace()
@@ -183,6 +229,7 @@ local function raceLoop()
 				table.remove(queue, i)
 			end
 		end
+		dropWanderers()
 		local now = Workspace:GetServerTimeNow()
 		if race.State == "Idle" and #queue >= Config.Race.MinPlayers then
 			race.State = "Countdown"
@@ -207,8 +254,13 @@ local function raceLoop()
 				end
 				for _, p in race.Players do
 					race.Scores[p] = 0
+					joinedAtPortal[p] = nil
 					setRaceAttrs(p, "Running")
 					S.Kitchen.Notify(p, "VALENDO! Descasque o máximo com precisão em 60 s")
+				end
+				-- quem não coube nesta corrida volta a esperar a próxima
+				for _, p in queue do
+					setRaceAttrs(p, "Queued")
 				end
 				publishRace()
 			end
@@ -232,11 +284,6 @@ function EventService.Init(services)
 	S.Bus.Connect("StripsPeeled", onStrips)
 	Players.PlayerRemoving:Connect(function(p)
 		EventService.Leave(p)
-		local i = table.find(race.Players, p)
-		if i then
-			table.remove(race.Players, i)
-			race.Scores[p] = nil
-		end
 	end)
 	publishGiant()
 	publishRace()

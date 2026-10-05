@@ -6,6 +6,7 @@ local CollectionService = game:GetService("CollectionService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Strings = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Strings"))
+local Config = require(ReplicatedStorage.Shared:WaitForChild("Config"))
 
 local player = Players.LocalPlayer
 
@@ -72,7 +73,9 @@ function Prompts.Init()
 				if p:IsA("ProximityPrompt") then
 					local st = player:GetAttribute("State")
 					local rs = player:GetAttribute("RaceState")
-					p.Enabled = (st == "Free" or st == "Holding") and rs == nil
+					-- portão da Horta Proibida: fechado ("EM BREVE") enquanto RoomOpen for false
+					local closed = p:GetAttribute("Kind") == "SecretRoom" and not Config.Golden.RoomOpen
+					p.Enabled = (st == "Free" or st == "Holding") and rs == nil and not closed
 				end
 			end
 			task.wait(0.15)

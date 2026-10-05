@@ -183,6 +183,7 @@ Config.Golden = {
 	ChestProductionMinutes = 30,
 	ChestMinimum = 500,
 	FragmentsPerRoom = 5,
+	RoomOpen = false, -- Horta Proibida fechada por enquanto (portão do lobby mostra "EM BREVE")
 	RoomCoinBonus = 0.05,
 }
 
@@ -392,6 +393,15 @@ Config.Race = {
 	MaxPlayers = 4,
 	LobbySeconds = 15,
 	Rewards = { 600, 300, 150, 75 },
+	LeaveDistance = 30, -- studs: quem entrou pelo portal e se afasta disso sai da fila
+}
+
+-- Zona proibida em frente ao castelo do Rei: aviso ao entrar; quem fica Grace segundos leva tiro.
+Config.Castle = {
+	ZoneMaxZ = -54, -- z menor que isto = perto do castelo
+	ZoneMinX = -110,
+	ZoneMaxX = 110,
+	Grace = 1.5, -- s
 }
 
 -- Duelo de Descasque (arena ao lado do lobby): dois jogadores em mesas frente a frente;

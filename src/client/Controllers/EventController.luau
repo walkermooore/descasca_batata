@@ -167,6 +167,28 @@ function Events.Init(controllers)
 	C.HUD.Stroke(raceFrame, T.RustBright, 2)
 	raceTitle = C.HUD.Label(raceFrame, { Text = "", Size = UDim2.new(1, -20, 0, 26), Position = UDim2.fromOffset(10, 3) })
 	raceBoard = C.HUD.Label(raceFrame, { Text = "", TextColor3 = T.Gold, Size = UDim2.new(1, -20, 0, 20), Position = UDim2.fromOffset(10, 31) })
+	-- sair da corrida (ou da fila) a qualquer momento
+	local leave = Instance.new("TextButton")
+	leave.Name = "Leave"
+	leave.AnchorPoint = Vector2.new(0, 0.5)
+	leave.Position = UDim2.new(1, 8, 0.5, 0)
+	leave.Size = UDim2.fromOffset(70, 32)
+	leave.Text = "Sair"
+	leave.Font = T.Font
+	leave.TextScaled = true
+	leave.TextColor3 = T.Bone
+	leave.BackgroundColor3 = T.Rust
+	leave.Parent = raceFrame
+	C.HUD.Corner(leave, 6)
+	local lp = Instance.new("UIPadding")
+	lp.PaddingTop = UDim.new(0, 6)
+	lp.PaddingBottom = UDim.new(0, 6)
+	lp.Parent = leave
+	leave.Activated:Connect(function()
+		pcall(function()
+			Remotes.SocialRequest:InvokeServer("RaceLeave")
+		end)
+	end)
 
 	buildEmotes(gui)
 	RunService.Heartbeat:Connect(update)

@@ -26,6 +26,7 @@ local ORDER = {
 	{ "Retention", "RetentionService" },
 	{ "Analytics", "AnalyticsTracker" },
 	{ "Duel", "DuelService" },
+	{ "Castle", "CastleService" },
 	{ "Dev", "DevService" },
 }
 

@@ -212,9 +212,13 @@ function SocialService.Init(services)
 			prompt.Triggered:Connect(function(player)
 				local kind = prompt:GetAttribute("Kind")
 				if kind == "Race" then
-					S.Race.Join(player)
+					S.Race.Join(player, true)
 				elseif kind == "SecretRoom" then
-					-- Horta Proibida: só com 5 fragmentos de mapa (seção 2.9)
+					-- Horta Proibida: só com 5 fragmentos de mapa (seção 2.9); fechada até RoomOpen
+					if not Config.Golden.RoomOpen then
+						S.Kitchen.Notify(player, "A Horta Proibida abre em breve.")
+						return
+					end
 					local data = S.Data.Get(player)
 					local cave = Workspace.World:FindFirstChild("HortaProibida")
 					if data and data.Rooms.HortaProibida and cave and freeToTravel(player) then
