@@ -59,21 +59,15 @@ local function rollType(player: Player): string
 		return t
 	end
 	local data = S.Data.Get(player)
+	-- Caixa de Batatas Douradas (comprada): vale na hora, até no tutorial
+	if data and (data.GoldenForced or 0) > 0 then
+		data.GoldenForced -= 1
+		player:SetAttribute("GoldenForced", data.GoldenForced)
+		return "Dourada"
+	end
 	-- a primeira batata (e todo o tutorial) é sempre Comum
 	if not data or data.Tutorial.Step < TUTORIAL_DONE or data.Stats.PotatoesPicked == 0 then
 		return "Comum"
-	end
-	-- Caixa de Batatas Douradas: as próximas N são douradas
-	if (data.GoldenForced or 0) > 0 then
-		data.GoldenForced -= 1
-		return "Dourada"
-	end
-	-- Bússola Dourada: garante a dourada dentro das próximas N batatas
-	if data.GoldenPity > 0 then
-		data.GoldenPity -= 1
-		if data.GoldenPity == 0 then
-			return "Dourada"
-		end
 	end
 	if rng:NextNumber() < PeelService.GoldenChance(player) then
 		return "Dourada"

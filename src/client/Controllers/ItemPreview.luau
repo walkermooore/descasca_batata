@@ -534,11 +534,19 @@ local function passModel(id: string): Model?
 		m:PivotTo(CFrame.new(-0.3, 0, 0) * CFrame.Angles(rad(70), 0, rad(-20)))
 		glove(m, CFrame.new(0.55, -0.1, 0.2) * CFrame.Angles(0, 0, rad(-15)), 1)
 		coinStack(m, CFrame.new(0, -0.9, -0.4), 5)
-	elseif id == "BaldeGigante" then
-		cylY(m, 1.3, 1.5, CFrame.new(0, 0, 0), Color3.fromRGB(120, 124, 128), Enum.Material.Metal)
-		cylY(m, 0.1, 1.6, CFrame.new(0, 0.65, 0), IRON, Enum.Material.Metal)
-		cylY(m, 0.1, 1.6, CFrame.new(0, -0.3, 0), IRON, Enum.Material.Metal)
-		for i = 1, 6 do potato(m, CFrame.new(((i % 3) - 1) * 0.35, 0.8 + math.floor(i / 4) * 0.2, (i % 2 - 0.5) * 0.4) * CFrame.Angles(0, i, rad(i * 30)), 1) end
+	elseif id == "Chaves" then
+		-- argola de ferro com cinco chaves de latão penduradas
+		for k = 0, 11 do
+			local a = k / 12 * math.pi * 2
+			ball(m, 0.1, CFrame.new(math.cos(a) * 0.35, 0.75 + math.sin(a) * 0.35, 0), IRON, Enum.Material.Metal)
+		end
+		for i = 1, 5 do
+			local key = CFrame.new(0, 0.45, 0) * CFrame.Angles(0, 0, rad(-40 + (i - 1) * 20)) * CFrame.new(0, -0.55, 0)
+			part(m, Vector3.new(0.07, 0.9, 0.05), key, BRASS, Enum.Material.Metal)
+			part(m, Vector3.new(0.05, 0.26, 0.26), key * CFrame.new(0, 0.5, 0) * CFrame.Angles(0, rad(90), 0), BRASS, Enum.Material.Metal, Enum.PartType.Cylinder)
+			part(m, Vector3.new(0.16, 0.06, 0.05), key * CFrame.new(0.08, -0.35, 0), BRASS, Enum.Material.Metal)
+			part(m, Vector3.new(0.12, 0.06, 0.05), key * CFrame.new(0.06, -0.22, 0), BRASS, Enum.Material.Metal)
+		end
 	elseif id == "CarrinhoTurbo" then
 		local c = kitchenModel("Cart") :: Model
 		for _, d in c:GetChildren() do d.Parent = m end
@@ -554,17 +562,6 @@ local function passModel(id: string): Model?
 		part(m, Vector3.new(0.45, 0.08, 0.05), CFrame.new(0.2, 0, -0.17), DARK, Enum.Material.Metal)
 		local moon = ball(m, 0.8, CFrame.new(0.9, 0.9, 0), Color3.fromRGB(240, 230, 170), Enum.Material.Neon)
 		moon.Transparency = 0.1
-	elseif id == "AutoDescascar" then
-		peelerY(m, Config.TierColors[3], false)
-		m:PivotTo(CFrame.Angles(rad(60), 0, 0))
-		local c = CFrame.new(0.7, -0.4, 0.2)
-		part(m, Vector3.new(0.12, 0.7, 0.7), c, BRASS, Enum.Material.Metal, Enum.PartType.Cylinder)
-		for k = 0, 5 do part(m, Vector3.new(0.12, 0.14, 0.14), c * CFrame.Angles(rad(k * 60), 0, 0) * CFrame.new(0, 0.4, 0), BRASS, Enum.Material.Metal) end
-	elseif id == "MaisAjudantes" then
-		chefHat(m, CFrame.new(-0.6, 0, 0), Color3.fromRGB(236, 232, 222))
-		chefHat(m, CFrame.new(0.6, 0.15, 0.3), Color3.fromRGB(236, 232, 222))
-		part(m, Vector3.new(0.5, 0.15, 0.15), CFrame.new(0, 1.4, 0), Color3.fromRGB(90, 220, 110), Enum.Material.Neon)
-		part(m, Vector3.new(0.15, 0.5, 0.15), CFrame.new(0, 1.4, 0), Color3.fromRGB(90, 220, 110), Enum.Material.Neon)
 	elseif id == "VIP" or id == "Duelista" then
 		part(m, Vector3.new(0.5, 1.4, 1.4), CFrame.new(0, 0, 0) * CFrame.Angles(0, 0, rad(90)), BRASS, Enum.Material.Metal, Enum.PartType.Cylinder).Reflectance = 0.2
 		for i = 0, 5 do
@@ -583,16 +580,11 @@ local function passModel(id: string): Model?
 			k2:PivotTo(CFrame.new(0, 0.2, 0.5) * CFrame.Angles(0, 0, rad(-40)) * CFrame.Angles(rad(-90), 0, 0))
 			for _, d in k2:GetChildren() do d.Parent = m end
 		end
-	elseif id == "SorteDourada" or id == "Bussola" or id == "CaixaDourada" then
+	elseif id == "SorteDourada" or id == "CaixaDourada" then
 		if id == "CaixaDourada" then
 			part(m, Vector3.new(1.8, 0.9, 1.3), CFrame.new(0, -0.3, 0), PLANK, Enum.Material.WoodPlanks)
 			for _, s in { -1, 1 } do part(m, Vector3.new(1.84, 0.12, 0.12), CFrame.new(0, 0.12, s * 0.62), IRON, Enum.Material.Metal) end
-			for i = 1, 3 do goldPotato(m, CFrame.new((i - 2) * 0.5, 0.35, 0) * CFrame.Angles(0, i, rad(20)), 1.3) end
-		elseif id == "Bussola" then
-			part(m, Vector3.new(0.3, 1.6, 1.6), CFrame.new(0, 0, 0) * CFrame.Angles(0, 0, rad(90)), BRASS, Enum.Material.Metal, Enum.PartType.Cylinder)
-			part(m, Vector3.new(0.32, 1.35, 1.35), CFrame.new(0, 0.01, 0) * CFrame.Angles(0, 0, rad(90)), Color3.fromRGB(228, 214, 186), Enum.Material.SmoothPlastic, Enum.PartType.Cylinder)
-			part(m, Vector3.new(0.12, 0.06, 1.0), CFrame.new(0, 0.2, 0) * CFrame.Angles(0, rad(30), 0), Color3.fromRGB(190, 40, 40), Enum.Material.Metal)
-			goldPotato(m, CFrame.new(0.8, 0.5, 0.6), 0.9)
+			for i = 1, 5 do goldPotato(m, CFrame.new(((i - 1) % 3 - 1) * 0.5, 0.35 + (if i > 3 then 0.3 else 0), (if i > 3 then 0.2 else -0.1)) * CFrame.Angles(0, i, rad(20)), 1.2) end
 		else
 			goldPotato(m, CFrame.new(0, 0, 0), 2.4)
 		end

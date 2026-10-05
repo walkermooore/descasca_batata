@@ -46,7 +46,7 @@ local DEFAULT = {
 	-- Etapa 6: monetização
 	PassGrants = {}, -- passes com entrega única já entregues (Kit Inicial)
 	Boost = { Mult = 1, Until = 0 },
-	GoldenPity = 0, -- Bússola Dourada: batatas restantes até a dourada garantida
+	GoldenForced = 0, -- Caixa de Batatas Douradas: próximas batatas que serão douradas
 	ExpressTrips = 0, -- Despacho Expresso: viagens do carrinho que ainda vão e voltam na hora
 	Sessions = 0,
 	OfferFlags = {}, -- ofertas já mostradas (uma vez cada)

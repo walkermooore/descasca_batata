@@ -27,6 +27,7 @@ local emotePanel: Frame
 local castleGui: ScreenGui
 local castleTint: Frame
 local castleText: TextLabel
+local effectsLabel: TextLabel
 
 local function clock(sec: number): string
 	sec = math.max(0, math.floor(sec))
@@ -60,6 +61,27 @@ local function update()
 		end
 		raceBoard.Text = table.concat(parts, "   ·   ")
 	end
+	-- efeitos de compras ativos (boost, banquete, douradas e viagens expressas restantes)
+	local parts = {}
+	local t = os.time()
+	local bEnds, bMult = player:GetAttribute("BoostEnds") or 0, player:GetAttribute("BoostMult") or 1
+	if bMult > 1 and bEnds > t then
+		table.insert(parts, string.format("Boost x%d · %s", bMult, clock(bEnds - t)))
+	end
+	local sEnds = Workspace:GetAttribute("ServerBoostEnds") or 0
+	if sEnds > t then
+		table.insert(parts, string.format("Banquete x%d · %s", Workspace:GetAttribute("ServerBoost") or 2, clock(sEnds - t)))
+	end
+	local golden = player:GetAttribute("GoldenForced") or 0
+	if golden > 0 then
+		table.insert(parts, string.format("Douradas garantidas: %d", golden))
+	end
+	local express = player:GetAttribute("ExpressTrips") or 0
+	if express > 0 then
+		table.insert(parts, string.format("Viagens expressas: %d", express))
+	end
+	effectsLabel.Visible = #parts > 0
+	effectsLabel.Text = table.concat(parts, "   |   ")
 	-- perto do castelo: tela vermelha pulsando e contagem até os guardas atirarem
 	local shootAt = player:GetAttribute("CastleShootAt")
 	castleGui.Enabled = shootAt ~= nil
@@ -238,6 +260,17 @@ function Events.Init(controllers)
 			Remotes.SocialRequest:InvokeServer("RaceLeave")
 		end)
 	end)
+
+	effectsLabel = C.HUD.Label(gui, {
+		Name = "ActiveEffects",
+		Text = "",
+		TextColor3 = T.Gold,
+		AnchorPoint = Vector2.new(0.5, 0),
+		Position = UDim2.new(0.5, 0, 0, 120),
+		Size = UDim2.fromOffset(560, 24),
+		Visible = false,
+	})
+	effectsLabel.TextStrokeTransparency = 0.3
 
 	buildEmotes(gui)
 	buildCastleWarning()

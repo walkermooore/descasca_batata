@@ -156,23 +156,14 @@ function MonetizationService.SpeedMultiplier(player: Player): number
 	return if MonetizationService.HasPass(player, "CarrinhoTurbo") then 1 + Config.GamePassesById.CarrinhoTurbo.SpeedBonus else 1
 end
 
--- Capacidade do carrinho: Balde Gigante (+50%) e Carroça Real (+100%) somam.
+-- Capacidade do carrinho: a Carroça Real dobra.
 function MonetizationService.CapacityMultiplier(player: Player?): number
-	if not player then
-		return 1
-	end
-	local m = 1
-	if MonetizationService.HasPass(player, "BaldeGigante") then
-		m += 0.5
-	end
-	if MonetizationService.HasPass(player, "CarrocaReal") then
-		m += Config.GamePassesById.CarrocaReal.CapacityBonus
-	end
-	return m
+	return if player and MonetizationService.HasPass(player, "CarrocaReal") then 1 + Config.GamePassesById.CarrocaReal.CapacityBonus else 1
 end
 
-function MonetizationService.ExtraHelpers(player: Player): number
-	return if MonetizationService.HasPass(player, "MaisAjudantes") then Config.GamePassesById.MaisAjudantes.ExtraSlots else 0
+-- Vagas extras de ajudante da grade de máquinas (desligada): nenhum passe dá vagas hoje.
+function MonetizationService.ExtraHelpers(_player: Player): number
+	return 0
 end
 
 function MonetizationService.OfflineHours(player: Player): number
@@ -236,12 +227,14 @@ local function grantProduct(player: Player, def): boolean
 	elseif def.BoostMult then
 		setBoost(player, def.BoostMult, def.BoostMinutes)
 		Remotes.Reward:FireClient(player, "Product", { Title = def.Name, Text = string.format("Produção x%d por %d min", def.BoostMult, def.BoostMinutes) })
-	elseif def.GoldenWithin then
-		data.GoldenPity = def.GoldenWithin
-		Remotes.Reward:FireClient(player, "Product", { Title = def.Name, Text = "Uma batata dourada virá nas próximas " .. def.GoldenWithin })
 	elseif def.GoldenNext then
 		data.GoldenForced = (data.GoldenForced or 0) + def.GoldenNext
-		Remotes.Reward:FireClient(player, "Product", { Title = def.Name, Text = "As próximas " .. def.GoldenNext .. " batatas serão douradas" })
+		player:SetAttribute("GoldenForced", data.GoldenForced)
+		Remotes.Reward:FireClient(player, "Product", { Title = def.Name, Text = "As próximas " .. data.GoldenForced .. " batatas serão douradas" })
+	elseif def.Keys then
+		data.Keys += def.Keys
+		S.Session.Publish(player)
+		Remotes.Reward:FireClient(player, "Product", { Title = def.Name, Text = string.format("+%d chaves (agora %d). Abra o baú da cozinha.", def.Keys, data.Keys) })
 	elseif def.ServerBoostMult then
 		S.Retention.StartServerBoost(def.ServerBoostMult, def.ServerBoostMinutes)
 		for _, p in Players:GetPlayers() do
@@ -255,8 +248,8 @@ local function grantProduct(player: Player, def): boolean
 		player:SetAttribute("ExpressTrips", data.ExpressTrips)
 		Remotes.Reward:FireClient(player, "Product", { Title = def.Name, Text = string.format("Próximas %d viagens do carrinho na hora", data.ExpressTrips) })
 	elseif def.Id == "PedidoRelampago" then
-		S.Orders.ForceOffer(player)
-		Remotes.Reward:FireClient(player, "Product", { Title = def.Name, Text = "Um pedido especial chegou ao quadro" })
+		local now = S.Orders.ForceOffer(player)
+		Remotes.Reward:FireClient(player, "Product", { Title = def.Name, Text = if now then "Um pedido especial chegou ao quadro" else "O pedido especial chega assim que o atual acabar" })
 	elseif def.Id == "PassePremium" then
 		S.Retention.GrantPremium(player)
 		Remotes.Reward:FireClient(player, "Product", { Title = def.Name, Text = "Trilha premium liberada nesta temporada" })
@@ -470,6 +463,9 @@ function MonetizationService.Init(services)
 		sessionStart[player] = os.clock()
 		player:SetAttribute("BoostMult", if data.Boost.Until > os.time() then data.Boost.Mult else 1)
 		player:SetAttribute("BoostEnds", data.Boost.Until)
+		-- contadores de compras pendentes (faixa de efeitos ativos na tela)
+		player:SetAttribute("GoldenForced", data.GoldenForced or 0)
+		player:SetAttribute("ExpressTrips", data.ExpressTrips or 0)
 		checkPasses(player)
 		checkSubscription(player)
 		-- oferta após 30 min de jogo

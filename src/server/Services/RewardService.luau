@@ -20,7 +20,6 @@ function RewardService.GoldenFound(player: Player)
 	end
 	local g = Config.Golden
 	data.Stats.Golden += 1
-	data.GoldenPity = 0 -- a Bússola Dourada foi cumprida
 	S.Bus.Fire("GoldenFound", player)
 	local reward = { Kind = "Fragment", Fragments = 0, Needed = g.FragmentsPerRoom, RoomUnlocked = false }
 	if rng:NextNumber() < g.KeyChance then

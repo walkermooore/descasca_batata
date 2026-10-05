@@ -28,7 +28,7 @@ function RetentionService.StartServerBoost(mult: number, minutes: number)
 	else
 		serverBoost = { Mult = math.max(mult, if serverBoost.Until > now then serverBoost.Mult else 1), Until = now + minutes * 60 }
 	end
-	Workspace:SetAttribute("ServerBoostMult", serverBoost.Mult)
+	Workspace:SetAttribute("ServerBoost", serverBoost.Mult) -- mesmo nome que o Admin Abuse e a interface usam
 	Workspace:SetAttribute("ServerBoostEnds", serverBoost.Until)
 end
 local forcedGoldenUntil = 0

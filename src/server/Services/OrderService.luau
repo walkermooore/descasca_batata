@@ -93,6 +93,10 @@ local function finish(player: Player, success: boolean)
 	local a = st.Active
 	st.Active = nil
 	st.NextOfferAt = os.clock() + Config.Orders.Interval
+	if st.FlashPending then
+		st.FlashPending = nil
+		st.NextOfferAt = os.clock() -- Pedido Relâmpago guardado: chega agora
+	end
 	if success then
 		local bonus = a.Value * (Config.Orders.RewardMultiplier - 1)
 		local paid = S.Economy.Add(player, math.max(1, bonus), "Order")
@@ -125,12 +129,20 @@ function OrderService.Accept(player: Player)
 end
 
 -- Pedido Relâmpago (produto): um pedido novo agora, mesmo fora do ciclo de 3 min.
-function OrderService.ForceOffer(player: Player)
+-- Com um pedido em andamento, o especial fica guardado e chega assim que o atual acabar.
+-- Retorna true se o pedido apareceu agora.
+function OrderService.ForceOffer(player: Player): boolean
 	local st = states[player]
-	if st and not st.Active then
-		st.Enabled = true
-		newOffer(player)
+	if not st then
+		return false
 	end
+	st.Enabled = true
+	if st.Active then
+		st.FlashPending = true
+		return false
+	end
+	newOffer(player)
+	return true
 end
 
 -- Libera os pedidos (chamado quando o tutorial termina ou ao entrar com tutorial feito).

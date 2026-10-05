@@ -457,26 +457,24 @@ Config.TierColors = {
 -- "Faixa verde intocável": nenhuma skin pode mudar essa cor.
 Config.GreenZoneColor = Color3.fromRGB(70, 215, 90)
 
--- 8. Monetização (preços em Robux; entra na Etapa 6)
+-- 8. Monetização (preços em Robux). Regra: o pago economiza tempo ou dá estilo; nada fica
+-- trancado atrás de Robux. Cada item tem efeito visível (contador ou aviso na tela).
 Config.GamePasses = {
 	-- PassId = 0: ainda não criado no Creator Hub (aparece como "Em breve" e fica desligado).
 	-- OfferAt: momento de "dor" em que o jogo pode oferecer o passe (seção 8).
 	{ Id = "KitInicial", PassId = 0, Name = "Kit Inicial do Aprendiz", Price = 99, OfferAt = "FirstDelivery", Desc = "Faca de cozinha, luvas e 5.000 Moedas." },
-	{ Id = "BaldeGigante", PassId = 0, Name = "Balde Gigante", Price = 149, OfferAt = "BucketFull", Desc = "+50% de capacidade no carrinho." },
-	{ Id = "CarrocaReal", PassId = 0, Name = "Carroça Real", Price = 249, CapacityBonus = 1, Desc = "+100% de capacidade no carrinho (soma com o Balde Gigante)." },
-	{ Id = "CarrinhoTurbo", PassId = 0, Name = "Carrinho Turbo", Price = 99, SpeedBonus = 0.40, OfferAt = "WingBought", Desc = "+40% de velocidade ao andar e no carrinho." },
-	{ Id = "GanhoOffline8h", PassId = 0, Name = "Ganho Offline 8h", Price = 199, OfferAt = "OfflineReturn", Desc = "Ganho offline passa de 2h para 8h." },
-	{ Id = "AutoDescascar", PassId = 0, Name = "Auto-Descascar", Price = 249, OfferAt = "Played30", Desc = "Segurar o botão descasca sozinho (rendimento máx. 85%)." },
-	{ Id = "MaisAjudantes", PassId = 0, Name = "Mais Ajudantes", Price = 299, ExtraSlots = 2, OfferAt = "FirstHelper", Hidden = not Config.Features.Build, Desc = "+2 vagas de ajudante." }, -- só vale com a grade de máquinas
+	{ Id = "CarrocaReal", PassId = 0, Name = "Carroça Real", Price = 199, CapacityBonus = 1, Desc = "O carrinho leva o dobro de batatas por viagem." },
+	{ Id = "CarrinhoTurbo", PassId = 0, Name = "Carrinho Turbo", Price = 99, SpeedBonus = 0.40, OfferAt = "WingBought", Desc = "Você anda 40% mais rápido e o carrinho vai e volta 40% mais rápido." },
+	{ Id = "GanhoOffline8h", PassId = 0, Name = "Ganho Offline 8h", Price = 149, OfferAt = "OfflineReturn", Desc = "As máquinas rendem por até 8h com você fora (sem o passe, 2h)." },
 	{ Id = "VIP", PassId = 0, Name = "VIP da Cozinha Real", Price = 299, CoinBonus = 0.20, OfferAt = "FirstRebirth", Desc = "+20% Moedas e tag dourada [VIP] no chat." },
-	{ Id = "SorteDourada", PassId = 0, Name = "Sorte Dourada", Price = 349, GoldenBonus = 0.5, OfferAt = "FirstGolden", Desc = "+50% de chance de batata dourada." },
-	{ Id = "MoedasX2", PassId = 0, Name = "Moedas x2", Price = 399, CoinMultiplier = 2, Desc = "Dobra todas as Moedas, para sempre." },
+	{ Id = "SorteDourada", PassId = 0, Name = "Sorte Dourada", Price = 249, GoldenBonus = 1, OfferAt = "FirstGolden", Desc = "Dobra a chance de batata dourada." },
+	{ Id = "MoedasX2", PassId = 0, Name = "Moedas x2", Price = 399, CoinMultiplier = 2, Desc = "Dobra as Moedas das entregas, pedidos e eventos, para sempre." },
+	{ Id = "MaquinasTurbo", PassId = 0, Name = "Máquinas Turbo", Price = 249, AutoBonus = 0.5, Desc = "Descascador automático e tambor produzem +50% batatas." },
+	{ Id = "Duelista", PassId = 0, Name = "Duelista do Rei", Price = 199, DuelCoinBonus = 1, Desc = "+100% de Moedas ao vencer duelos e coroa de duelista na cabeça." },
 	{ Id = "ChefLendario", PassId = 0, Name = "Chef Lendário", Price = 199, Desc = "Chapéu de chef dourado e rastro brilhante ao andar." },
 	{ Id = "BatataPet", PassId = 0, Name = "Batata de Estimação", Price = 149, Desc = "Uma batatinha de chapéu que segue você por todo o acampamento." },
 	{ Id = "FacaDeOuro", PassId = 0, Name = "Faca de Ouro do Rei", Price = 129, Desc = "Sua faca vira ouro e solta faíscas ao descascar (só visual)." },
 	{ Id = "CarrinhoDeOuro", PassId = 0, Name = "Carrinho de Ouro", Price = 99, Desc = "O carrinho da sua cozinha brilha em ouro (só visual)." },
-	{ Id = "Duelista", PassId = 0, Name = "Duelista do Rei", Price = 199, DuelCoinBonus = 1, Desc = "+100% de Moedas ao vencer duelos e coroa de duelista na cabeça." },
-	{ Id = "MaquinasTurbo", PassId = 0, Name = "Máquinas Turbo", Price = 249, AutoBonus = 0.5, Desc = "Descascador automático e tambor produzem +50% batatas." },
 }
 Config.GamePassesById = {}
 for _, p in Config.GamePasses do
@@ -489,14 +487,14 @@ Config.Products = {
 	{ Id = "SacoM", ProductId = 0, Name = "Saco de Moedas M", Price = 149, Minutes = 60, Desc = "1 hora da sua produção atual." },
 	{ Id = "SacoG", ProductId = 0, Name = "Saco de Moedas G", Price = 399, Minutes = 240, Desc = "4 horas da sua produção atual." },
 	{ Id = "SacoXG", ProductId = 0, Name = "Saco de Moedas XG", Price = 999, Minutes = 720, Desc = "12 horas da sua produção atual." },
-	{ Id = "Boost2", ProductId = 0, Name = "Boost x2 (30 min)", Price = 39, BoostMult = 2, BoostMinutes = 30, Desc = "Dobra a produção por 30 minutos." },
-	{ Id = "Boost3", ProductId = 0, Name = "Boost x3 (60 min)", Price = 99, BoostMult = 3, BoostMinutes = 60, Desc = "Triplica a produção por 1 hora." },
-	{ Id = "Bussola", ProductId = 0, Name = "Bússola Dourada", Price = 49, GoldenWithin = 50, Desc = "Garante uma batata dourada nas próximas 50." },
-	{ Id = "PedidoRelampago", ProductId = 0, Name = "Pedido Relâmpago", Price = 25, Desc = "Chama um pedido especial do Rei agora." },
-	{ Id = "PassePremium", ProductId = 0, Name = "Passe de Temporada Premium", Price = 499, Desc = "Trilha premium do passe de temporada." },
-	{ Id = "CaixaDourada", ProductId = 0, Name = "Caixa de Batatas Douradas", Price = 99, GoldenNext = 3, Desc = "As próximas 3 batatas que você pegar serão douradas." },
+	{ Id = "Boost2", ProductId = 0, Name = "Boost x2 (30 min)", Price = 39, BoostMult = 2, BoostMinutes = 30, Desc = "Dobra as Moedas das entregas por 30 minutos." },
+	{ Id = "Boost3", ProductId = 0, Name = "Boost x3 (60 min)", Price = 99, BoostMult = 3, BoostMinutes = 60, Desc = "Triplica as Moedas das entregas por 1 hora." },
+	{ Id = "CaixaDourada", ProductId = 0, Name = "Caixa de Batatas Douradas", Price = 99, GoldenNext = 5, Desc = "As próximas 5 batatas que você pegar serão douradas." },
+	{ Id = "Chaves", ProductId = 0, Name = "Molho de Chaves", Price = 49, Keys = 5, Desc = "+5 chaves para abrir o baú da cozinha (cada baú: 30 min da sua produção)." },
 	{ Id = "DespachoExpresso", ProductId = 0, Name = "Despacho Expresso", Price = 25, ExpressTrips = 10, Desc = "As próximas 10 viagens do carrinho vão e voltam na hora." },
+	{ Id = "PedidoRelampago", ProductId = 0, Name = "Pedido Relâmpago", Price = 25, Desc = "Um pedido especial do Rei chega agora (ou logo que o atual acabar)." },
 	{ Id = "Banquete", ProductId = 0, Name = "Banquete do Rei", Price = 199, ServerBoostMult = 2, ServerBoostMinutes = 15, Desc = "O SERVIDOR INTEIRO ganha Moedas x2 por 15 min, e seu nome é anunciado." },
+	{ Id = "PassePremium", ProductId = 0, Name = "Passe de Temporada Premium", Price = 499, Desc = "Trilha premium do passe de temporada." },
 }
 Config.ProductsById = {}
 for _, p in Config.Products do
