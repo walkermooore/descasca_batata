@@ -47,6 +47,7 @@ local DEFAULT = {
 	PassGrants = {}, -- passes com entrega única já entregues (Kit Inicial)
 	Boost = { Mult = 1, Until = 0 },
 	GoldenPity = 0, -- Bússola Dourada: batatas restantes até a dourada garantida
+	ExpressTrips = 0, -- Despacho Expresso: viagens do carrinho que ainda vão e voltam na hora
 	Sessions = 0,
 	OfferFlags = {}, -- ofertas já mostradas (uma vez cada)
 	SubDaily = 0, -- dia do último boost diário da assinatura

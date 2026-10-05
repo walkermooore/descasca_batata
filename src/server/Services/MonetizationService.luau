@@ -141,8 +141,19 @@ function MonetizationService.SpeedMultiplier(player: Player): number
 	return if MonetizationService.HasPass(player, "CarrinhoTurbo") then 1 + Config.GamePassesById.CarrinhoTurbo.SpeedBonus else 1
 end
 
+-- Capacidade do carrinho: Balde Gigante (+50%) e Carroça Real (+100%) somam.
 function MonetizationService.CapacityMultiplier(player: Player?): number
-	return if player and MonetizationService.HasPass(player, "BaldeGigante") then 1.5 else 1
+	if not player then
+		return 1
+	end
+	local m = 1
+	if MonetizationService.HasPass(player, "BaldeGigante") then
+		m += 0.5
+	end
+	if MonetizationService.HasPass(player, "CarrocaReal") then
+		m += Config.GamePassesById.CarrocaReal.CapacityBonus
+	end
+	return m
 end
 
 function MonetizationService.ExtraHelpers(player: Player): number
@@ -224,6 +235,10 @@ local function grantProduct(player: Player, def): boolean
 				Text = string.format("%s pagou um banquete: Moedas x%d para todos por %d min!", player.DisplayName, def.ServerBoostMult, def.ServerBoostMinutes),
 			})
 		end
+	elseif def.ExpressTrips then
+		data.ExpressTrips += def.ExpressTrips
+		player:SetAttribute("ExpressTrips", data.ExpressTrips)
+		Remotes.Reward:FireClient(player, "Product", { Title = def.Name, Text = string.format("Próximas %d viagens do carrinho na hora", data.ExpressTrips) })
 	elseif def.Id == "PedidoRelampago" then
 		S.Orders.ForceOffer(player)
 		Remotes.Reward:FireClient(player, "Product", { Title = def.Name, Text = "Um pedido especial chegou ao quadro" })

@@ -634,6 +634,31 @@ local function passModel(id: string): Model?
 			end
 			d.Parent = m
 		end
+	elseif id == "CarrocaReal" then
+		-- carroça com laterais altas e um monte de batatas transbordando
+		local c = kitchenModel("Cart") :: Model
+		for _, d in c:GetChildren() do d.Parent = m end
+		for _, s in { -1, 1 } do
+			part(m, Vector3.new(2.0, 0.35, 0.08), CFrame.new(0, 0.95, 0.62 * s), PLANK, Enum.Material.WoodPlanks)
+		end
+		for i = 1, 10 do
+			potato(m, CFrame.new(((i % 5) - 2) * 0.32, 0.95 + (i % 3) * 0.12, ((i % 2) - 0.5) * 0.5) * CFrame.Angles(0, i, rad(i * 25)), 1)
+		end
+	elseif id == "DespachoExpresso" then
+		-- carroça com rastros de velocidade e uma ampulheta
+		local c = kitchenModel("Cart") :: Model
+		for _, d in c:GetChildren() do d.Parent = m end
+		for i = 1, 3 do
+			local s = part(m, Vector3.new(0.06, 0.06, 1.2), CFrame.new(-1.5 - i * 0.15, 0.1 + i * 0.25, 0) * CFrame.Angles(0, rad(90), 0), Color3.fromRGB(255, 220, 140), Enum.Material.Neon)
+			s.Transparency = 0.3
+		end
+		local glass = CFrame.new(0.9, 1.3, 0)
+		for _, y in { 0.42, -0.42 } do cylY(m, 0.08, 0.5, glass * CFrame.new(0, y, 0), PLANK, Enum.Material.Wood) end
+		local top = ball(m, 0.4, glass * CFrame.new(0, 0.2, 0), Color3.fromRGB(220, 230, 235), Enum.Material.Glass)
+		top.Transparency = 0.3
+		local bot = ball(m, 0.4, glass * CFrame.new(0, -0.2, 0), Color3.fromRGB(220, 230, 235), Enum.Material.Glass)
+		bot.Transparency = 0.3
+		ball(m, 0.22, glass * CFrame.new(0, -0.26, 0), Color3.fromRGB(214, 172, 74), Enum.Material.Sand)
 	elseif id == "MaquinasTurbo" then
 		local c = kitchenModel("AutoPeel") :: Model
 		for _, d in c:GetChildren() do d.Parent = m end

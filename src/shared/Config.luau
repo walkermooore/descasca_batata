@@ -250,7 +250,7 @@ Config.Upgrades = {
 	{
 		Id = "Cart", Name = "Carrinho maior", Unit = "batatas por viagem",
 		Desc = "Mais batatas por viagem ao Rei.",
-		Levels = { { Value = 5 }, { Value = 10, Cost = 80 }, { Value = 20, Cost = 400 }, { Value = 35, Cost = 1500 }, { Value = 50, Cost = 5000 }, { Value = 80, Cost = 20000 }, { Value = 120, Cost = 80000 } },
+		Levels = { { Value = 5 }, { Value = 10, Cost = 80 }, { Value = 20, Cost = 400 }, { Value = 35, Cost = 1500 }, { Value = 50, Cost = 5000 }, { Value = 80, Cost = 20000 }, { Value = 120, Cost = 80000 }, { Value = 180, Cost = 250000 }, { Value = 260, Cost = 800000 }, { Value = 380, Cost = 2500000 }, { Value = 500, Cost = 8000000 } },
 	},
 	{
 		Id = "AutoSend", Name = "Despacho automático", Unit = "", Toggle = true,
@@ -463,6 +463,7 @@ Config.GamePasses = {
 	-- OfferAt: momento de "dor" em que o jogo pode oferecer o passe (seção 8).
 	{ Id = "KitInicial", PassId = 0, Name = "Kit Inicial do Aprendiz", Price = 99, OfferAt = "FirstDelivery", Desc = "Faca de cozinha, luvas e 5.000 Moedas." },
 	{ Id = "BaldeGigante", PassId = 0, Name = "Balde Gigante", Price = 149, OfferAt = "BucketFull", Desc = "+50% de capacidade no carrinho." },
+	{ Id = "CarrocaReal", PassId = 0, Name = "Carroça Real", Price = 249, CapacityBonus = 1, Desc = "+100% de capacidade no carrinho (soma com o Balde Gigante)." },
 	{ Id = "CarrinhoTurbo", PassId = 0, Name = "Carrinho Turbo", Price = 99, SpeedBonus = 0.40, OfferAt = "WingBought", Desc = "+40% de velocidade ao andar e no carrinho." },
 	{ Id = "GanhoOffline8h", PassId = 0, Name = "Ganho Offline 8h", Price = 199, OfferAt = "OfflineReturn", Desc = "Ganho offline passa de 2h para 8h." },
 	{ Id = "AutoDescascar", PassId = 0, Name = "Auto-Descascar", Price = 249, OfferAt = "Played30", Desc = "Segurar o botão descasca sozinho (rendimento máx. 85%)." },
@@ -494,6 +495,7 @@ Config.Products = {
 	{ Id = "PedidoRelampago", ProductId = 0, Name = "Pedido Relâmpago", Price = 25, Desc = "Chama um pedido especial do Rei agora." },
 	{ Id = "PassePremium", ProductId = 0, Name = "Passe de Temporada Premium", Price = 499, Desc = "Trilha premium do passe de temporada." },
 	{ Id = "CaixaDourada", ProductId = 0, Name = "Caixa de Batatas Douradas", Price = 99, GoldenNext = 3, Desc = "As próximas 3 batatas que você pegar serão douradas." },
+	{ Id = "DespachoExpresso", ProductId = 0, Name = "Despacho Expresso", Price = 25, ExpressTrips = 10, Desc = "As próximas 10 viagens do carrinho vão e voltam na hora." },
 	{ Id = "Banquete", ProductId = 0, Name = "Banquete do Rei", Price = 199, ServerBoostMult = 2, ServerBoostMinutes = 15, Desc = "O SERVIDOR INTEIRO ganha Moedas x2 por 15 min, e seu nome é anunciado." },
 }
 Config.ProductsById = {}

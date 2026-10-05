@@ -91,6 +91,17 @@ local function cartTimes(K): (number, number)
 	return Config.Delivery.CartTravelTime / speed, Config.Delivery.CartReturnTime / speed
 end
 
+-- Despacho Expresso (produto): gasta uma viagem e o carrinho vai e volta quase na hora.
+local function useExpressTrip(K): boolean
+	local data = K.Owner and S.Data.Get(K.Owner)
+	if not data or (data.ExpressTrips or 0) <= 0 then
+		return false
+	end
+	data.ExpressTrips -= 1
+	K.Owner:SetAttribute("ExpressTrips", data.ExpressTrips)
+	return true
+end
+
 local function publish(K)
 	local m = K.Model
 	local cap = cartCapacity(K)
@@ -304,6 +315,9 @@ function KitchenService.SendCart(K)
 	end
 	freezeCart(K)
 	local travel, back = cartTimes(K)
+	if useExpressTrip(K) then
+		travel, back = math.min(travel, 1), math.min(back, 0.5)
+	end
 	K.Model:SetAttribute("CartTravel", travel)
 	K.Model:SetAttribute("CartReturn", back)
 	cart.State = "ToKing"
