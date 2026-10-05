@@ -18,6 +18,9 @@ return {
 	FleshScraped = "Raspou polpa!",
 	PutOnBelt = "Batata pronta! Coloque na esteira",
 	PlaceOnBelt = "Colocar na esteira",
+	PutInCart = "Batata pronta! Leve até o carrinho",
+	PlaceInCart = "Colocar no carrinho",
+	NeedsBeltShort = "Requer Esteira",
 	BeltFull = "A esteira está cheia",
 	GamepadHint = "Segure RT e mova o analógico direito de cima para baixo",
 
@@ -93,9 +96,9 @@ return {
 	Tutorial = {
 		[1] = "Ei, novato. Aqui a gente descasca pro Rei ou fica sem jantar. Pegue uma batata da pilha.",
 		[2] = "Vá até a mesa e aperte Descascar. Passe a faca pela casca do jeito que quiser. Cada passada tira uma faixa: gire a batata (A/D) e vá tirando faixa por faixa.",
-		[3] = "Coloque a batata pronta na esteira (o funil do lado da mesa) e descasque mais. (%d/%d)",
-		[4] = "Coloque a última na esteira. Ela leva as batatas até o carrinho.",
-		[5] = "Quando as batatas chegarem ao carrinho, aperte Enviar para mandar pro Rei.",
+		[3] = "Leve a batata pronta até o carrinho e coloque nele. Depois descasque mais. (%d/%d)",
+		[4] = "Coloque a última no carrinho. Mais tarde, a Esteira faz isso sozinha.",
+		[5] = "Agora aperte Enviar (R) no carrinho para mandar as batatas pro Rei.",
 		[6] = "Completei suas moedas. Compre uma faca decente na Loja antes que o Rei perca a paciência.",
 		[7] = "Agora é com você. Fique de olho no quadro: o Rei faz pedidos.",
 	},

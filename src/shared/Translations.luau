@@ -271,6 +271,17 @@ return {
 	{ "Balde Gigante", "Giant Bucket", "Balde Gigante" },
 	{ "+50% de capacidade no carrinho.", "+50% cart capacity.", "+50% de capacidad en el carrito." },
 	{ "Carroça Real", "Royal Wagon", "Carreta Real" },
+	-- cozinha sem esteira no começo
+	{ "Batata pronta! Leve até o carrinho", "Potato done! Take it to the cart", "¡Papa lista! Llévala al carrito" },
+	{ "Colocar no carrinho", "Put in cart", "Poner en el carrito" },
+	{ "Requer Esteira", "Needs Belt", "Requiere Cinta" },
+	{ "Compre a Esteira primeiro", "Buy the Belt first", "Compra la Cinta primero" },
+	{ "O carrinho está cheio: aperte Enviar", "The cart is full: press Send", "El carrito está lleno: pulsa Enviar" },
+	{ "Esteira transportadora", "Conveyor belt", "Cinta transportadora" },
+	{ "Leva as batatas prontas da mesa até o carrinho sozinha e libera as máquinas da cozinha. Sem ela, leve cada batata até o carrinho.", "Carries finished potatoes from the table to the cart on its own and unlocks the kitchen machines. Without it, carry each potato to the cart.", "Lleva sola las papas listas de la mesa al carrito y desbloquea las máquinas de la cocina. Sin ella, lleva cada papa al carrito." },
+	{ "Leve a batata pronta até o carrinho e coloque nele. Depois descasque mais. (%d/%d)", "Take the finished potato to the cart and put it in. Then peel more. (%d/%d)", "Lleva la papa lista al carrito y ponla dentro. Luego pela más. (%d/%d)" },
+	{ "Coloque a última no carrinho. Mais tarde, a Esteira faz isso sozinha.", "Put the last one in the cart. Later, the Belt does this for you.", "Pon la última en el carrito. Más adelante, la Cinta lo hace sola." },
+	{ "Agora aperte Enviar (R) no carrinho para mandar as batatas pro Rei.", "Now press Send (R) at the cart to ship the potatoes to the King.", "Ahora pulsa Enviar (R) en el carrito para mandar las papas al Rey." },
 	-- loja Robux (rework)
 	{ "O carrinho leva o dobro de batatas por viagem.", "The cart carries twice as many potatoes per trip.", "El carrito lleva el doble de papas por viaje." },
 	{ "Você anda 40% mais rápido e o carrinho vai e volta 40% mais rápido.", "You walk 40% faster and the cart goes and returns 40% faster.", "Caminas un 40% más rápido y el carrito va y vuelve un 40% más rápido." },

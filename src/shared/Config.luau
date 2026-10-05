@@ -246,7 +246,13 @@ Config.Collection = {
 }
 
 -- Melhorias da cozinha (compradas na Loja, aba Cozinha). Nível 1 é o inicial (sem custo).
+-- Requires = "Esteira": só dá para comprar depois da esteira (a cozinha começa sem ela).
 Config.Upgrades = {
+	{
+		Id = "Esteira", Name = "Esteira transportadora", Unit = "", Toggle = true,
+		Desc = "Leva as batatas prontas da mesa até o carrinho sozinha e libera as máquinas da cozinha. Sem ela, leve cada batata até o carrinho.",
+		Levels = { { Value = 0 }, { Value = 1, Cost = 300 } },
+	},
 	{
 		Id = "Cart", Name = "Carrinho maior", Unit = "batatas por viagem",
 		Desc = "Mais batatas por viagem ao Rei.",
@@ -258,37 +264,37 @@ Config.Upgrades = {
 		Levels = { { Value = 0 }, { Value = 1, Cost = 400 } },
 	},
 	{
-		Id = "Feeder", Name = "Alimentador automático", Unit = "", Toggle = true,
+		Id = "Feeder", Requires = "Esteira", Name = "Alimentador automático", Unit = "", Toggle = true,
 		Desc = "Uma calha traz a próxima batata direto para a sua mão e a pronta vai sozinha para a esteira. É só descascar.",
 		Levels = { { Value = 0 }, { Value = 1, Cost = 700 } },
 	},
 	{
-		Id = "Belt", Name = "Esteira mais rápida", Unit = "studs/s",
+		Id = "Belt", Requires = "Esteira", Name = "Esteira mais rápida", Unit = "studs/s",
 		Desc = "A esteira leva as batatas até o carrinho mais depressa.",
 		Levels = { { Value = 3 }, { Value = 4.5, Cost = 100 }, { Value = 6.5, Cost = 500 }, { Value = 9, Cost = 2500 }, { Value = 13, Cost = 12000 } },
 	},
 	{
-		Id = "Washer", Name = "Lavadora na esteira", Unit = "% de valor",
+		Id = "Washer", Requires = "Esteira", Name = "Lavadora na esteira", Unit = "% de valor",
 		Desc = "As batatas tomam um banho no caminho do carrinho e valem mais.",
 		Levels = { { Value = 0 }, { Value = 25, Cost = 300 }, { Value = 50, Cost = 1500 }, { Value = 100, Cost = 8000 }, { Value = 150, Cost = 40000 } },
 	},
 	{
-		Id = "AutoPeel", Name = "Descascador automático", Unit = "batatas/min",
+		Id = "AutoPeel", Requires = "Esteira", Name = "Descascador automático", Unit = "batatas/min",
 		Desc = "Uma máquina ao lado da esteira descasca sozinha, mesmo com você fora (rendimento 85%).",
 		Levels = { { Value = 0 }, { Value = 2, Cost = 500 }, { Value = 5, Cost = 2500 }, { Value = 10, Cost = 10000 }, { Value = 20, Cost = 40000 }, { Value = 40, Cost = 150000 }, { Value = 70, Cost = 500000 } },
 	},
 	{
-		Id = "Cutter", Name = "Cortador de fritas", Unit = "x valor",
+		Id = "Cutter", Requires = "Esteira", Name = "Cortador de fritas", Unit = "x valor",
 		Desc = "Corta as batatas em fritas antes do carrinho. Fritas valem mais para o Rei.",
 		Levels = { { Value = 1 }, { Value = 1.5, Cost = 2000 }, { Value = 2, Cost = 10000 }, { Value = 3, Cost = 50000 }, { Value = 5, Cost = 250000 } },
 	},
 	{
-		Id = "Drum", Name = "Tambor descascador", Unit = "batatas/min",
+		Id = "Drum", Requires = "Esteira", Name = "Tambor descascador", Unit = "batatas/min",
 		Desc = "Um tambor giratório enorme que descasca muitas batatas de uma vez e despeja na esteira.",
 		Levels = { { Value = 0 }, { Value = 15, Cost = 20000 }, { Value = 35, Cost = 80000 }, { Value = 70, Cost = 300000 }, { Value = 140, Cost = 1200000 } },
 	},
 	{
-		Id = "Masher", Name = "Amassador de purê", Unit = "x valor",
+		Id = "Masher", Requires = "Esteira", Name = "Amassador de purê", Unit = "x valor",
 		Desc = "Vira as batatas em purê para o banquete do Rei antes do carrinho. Purê vale muito mais.",
 		Levels = { { Value = 1 }, { Value = 1.5, Cost = 40000 }, { Value = 2, Cost = 200000 }, { Value = 3, Cost = 1000000 } },
 	},

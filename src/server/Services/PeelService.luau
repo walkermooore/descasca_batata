@@ -695,9 +695,13 @@ local function finishPotato(player: Player, s, P, K, combo: number, comboMult: n
 	S.Bus.Fire("PotatoFinished", player, { Type = P.Type, AvgYield = yield, Value = value, Combo = combo, Spoiled = P.Spoiled })
 
 	local autoBelt = s.Extra ~= nil or s.Stock > 0 or S.Session.HasItem(player, "Luvas") or S.Belt.UpgradeValue(player, "Feeder") > 0
-	if autoBelt and S.Belt.Push(K, P.Item) then
+	local sentTo = if autoBelt then S.Belt.Deliver(K, P.Item) else nil
+	if sentTo then
+		-- pela esteira (se a cozinha tiver) ou direto no carrinho
 		local belt = K.Belt:FindFirstChild("BeltRoot")
-		local dest = if belt and belt:FindFirstChild("P1") then (belt :: any).P1.WorldPosition else K.TableTop.Position
+		local dest = if sentTo == "Cart" then K.Cart.Root.Position
+			elseif belt and belt:FindFirstChild("P1") then (belt :: any).P1.WorldPosition
+			else K.TableTop.Position
 		PeelService.DestroyPotato(P)
 		continueWithNext(player, K, true)
 		S.Bus.Fire("BeltPlaced", player)
@@ -913,12 +917,19 @@ function PeelService.Init(services)
 		elseif action == "Discard" then
 			discard(player)
 		elseif action == "PlaceBelt" then
-			-- botão "Colocar na esteira": precisa estar perto do funil
+			-- botão "Colocar na esteira": precisa estar perto do funil (e a cozinha ter esteira)
 			local K = S.Kitchen.GetKitchen(player)
 			local hopper = K and K.Belt:FindFirstChild("Hopper") :: BasePart?
 			local hrp = player.Character and player.Character:FindFirstChild("HumanoidRootPart") :: BasePart?
-			if hopper and hrp and (hopper.Position - hrp.Position).Magnitude <= 11 then
+			if hopper and hrp and S.Belt.HasBelt(K.Owner) and (hopper.Position - hrp.Position).Magnitude <= 11 then
 				S.Belt.PlaceHeld(player, K)
+			end
+		elseif action == "PlaceCart" then
+			-- botão "Colocar no carrinho": precisa estar perto do carrinho
+			local K = S.Kitchen.GetKitchen(player)
+			local hrp = player.Character and player.Character:FindFirstChild("HumanoidRootPart") :: BasePart?
+			if K and hrp and (K.Cart.Root.Position - hrp.Position).Magnitude <= 11 then
+				S.Belt.PlaceHeldInCart(player, K)
 			end
 		elseif action == "SetAssisted" and typeof(arg) == "boolean" then
 			S.Session.SetAssisted(player, arg)

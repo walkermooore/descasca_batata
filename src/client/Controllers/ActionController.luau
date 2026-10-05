@@ -82,6 +82,19 @@ DEFS.Belt = {
 	end,
 }
 
+DEFS.Cart = {
+	Id = "Cart",
+	Label = Strings.PlaceInCart,
+	Key = Enum.KeyCode.E,
+	Pad = Enum.KeyCode.ButtonX,
+	KeyText = "E",
+	PadText = "X",
+	Primary = true,
+	Run = function()
+		Remotes.PeelAction:FireServer("PlaceCart")
+	end,
+}
+
 local function compute()
 	local state = player:GetAttribute("State")
 	local list = {}
@@ -95,9 +108,11 @@ local function compute()
 	end
 	if state == "Holding" then
 		if player:GetAttribute("HeldPeeled") then
-			-- batata pronta: levar até o funil da esteira
-			if C.Kitchen.DistanceToBelt() <= 10 then
+			-- batata pronta: levar até o funil da esteira ou, sem esteira, até o carrinho
+			if C.Kitchen.HasBelt() and C.Kitchen.DistanceToBelt() <= 10 then
 				table.insert(list, DEFS.Belt)
+			elseif C.Kitchen.DistanceToCart() <= 10 then
+				table.insert(list, DEFS.Cart)
 			end
 		elseif near then
 			table.insert(list, DEFS.Peel)

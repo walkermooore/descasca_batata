@@ -33,6 +33,24 @@ function BeltService.UpgradeValue(player: Player?, id: string): number
 	return def[math.clamp(levelOf(data, id), 1, #def)].Value
 end
 
+-- A cozinha começa sem esteira: o jogador leva cada batata pronta até o carrinho.
+function BeltService.HasBelt(player: Player?): boolean
+	return player ~= nil and BeltService.UpgradeValue(player, "Esteira") > 0
+end
+
+-- Saves antigos (de antes da esteira ser comprada): quem já tinha máquina ganha a esteira.
+local function migrateBelt(data)
+	if levelOf(data, "Esteira") > 1 then
+		return
+	end
+	for _, u in Config.Upgrades do
+		if u.Requires == "Esteira" and levelOf(data, u.Id) > 1 then
+			data.Upgrades.Esteira = 2
+			return
+		end
+	end
+end
+
 local function publishUpgrades(player: Player)
 	local data = S.Data.Get(player)
 	if not data then
@@ -56,6 +74,9 @@ function BeltService.BuyUpgrade(player: Player, id: any)
 	local nextDef = def.Levels[lvl + 1]
 	if not nextDef then
 		return { Ok = false, Reason = "Nível máximo" }
+	end
+	if def.Requires == "Esteira" and not BeltService.HasBelt(player) then
+		return { Ok = false, Reason = "Compre a Esteira primeiro" }
 	end
 	if not S.Economy.Spend(player, nextDef.Cost, "Upgrade:" .. id) then
 		return { Ok = false, Reason = "Moedas insuficientes" }
@@ -159,6 +180,32 @@ function BeltService.PlaceHeld(player: Player, K)
 	S.Bus.Fire("BeltPlaced", player)
 end
 
+-- Jogador segurando uma batata descascada coloca direto no carrinho (prompt do carrinho ou botão).
+function BeltService.PlaceHeldInCart(player: Player, K)
+	if not K or not S.Kitchen.CanUse(K, player) then
+		return
+	end
+	local s = S.Session.Get(player)
+	if not s or s.State ~= "Holding" or not s.Held or not s.Held.Peeled then
+		return
+	end
+	if not S.Kitchen.AddToCart(K, s.Held.Item) then
+		S.Kitchen.Notify(player, if K.Cart.State ~= "Home" then "O carrinho está a caminho do Rei" else "O carrinho está cheio: aperte Enviar")
+		return
+	end
+	S.Peel.ReleaseHeld(player)
+	S.Bus.Fire("BeltPlaced", player) -- tutorial: "colocou a batata pronta"
+end
+
+-- Batata pronta que segue sozinha (Luvas, carrinho de mão, alimentador): pela esteira se a
+-- cozinha tiver, senão direto no carrinho. Retorna o destino ou nil se não coube.
+function BeltService.Deliver(K, item): string?
+	if BeltService.HasBelt(K.Owner) then
+		return if BeltService.Push(K, item) then "Belt" else nil
+	end
+	return if S.Kitchen.AddToCart(K, item) then "Cart" else nil
+end
+
 function BeltService.Clear(K)
 	local st = stateOf(K)
 	for _, it in st.Items do
@@ -186,21 +233,56 @@ local function showMachine(model: Instance?, on: boolean)
 	end
 end
 
+local MACHINE_MODELS = { AutoPeeler = true, Washer = true, Cutter = true, Feeder = true, Drum = true, Masher = true, Items = true }
+
+-- A esteira em si (lona, trilhos, rolos, pés, funil, placa): some até ser comprada.
+local function showBeltBase(K, on: boolean)
+	for _, c in K.Belt:GetChildren() do
+		if MACHINE_MODELS[c.Name] then
+			continue
+		end
+		local list = c:GetDescendants()
+		table.insert(list, c)
+		for _, d in list do
+			if d:IsA("BasePart") then
+				if d:GetAttribute("BeltT") == nil then
+					d:SetAttribute("BeltT", d.Transparency)
+					d:SetAttribute("BeltC", d.CanCollide)
+				end
+				d.Transparency = if on then d:GetAttribute("BeltT") else 1
+				d.CanCollide = on and d:GetAttribute("BeltC") == true
+			elseif d:IsA("SurfaceGui") then
+				d.Enabled = on
+			end
+		end
+	end
+end
+
 function BeltService.Refresh(K)
 	K.Model:SetAttribute("BeltSpeed", BeltService.UpgradeValue(K.Owner, "Belt"))
 	local owner = K.Owner
-	showMachine(K.Belt:FindFirstChild("Washer"), owner ~= nil and BeltService.UpgradeValue(owner, "Washer") > 0)
-	showMachine(K.Belt:FindFirstChild("Cutter"), owner ~= nil and BeltService.UpgradeValue(owner, "Cutter") > 1)
-	showMachine(K.Belt:FindFirstChild("Feeder"), owner ~= nil and BeltService.UpgradeValue(owner, "Feeder") > 0)
-	showMachine(K.Belt:FindFirstChild("Drum"), owner ~= nil and BeltService.UpgradeValue(owner, "Drum") > 0)
-	showMachine(K.Belt:FindFirstChild("Masher"), owner ~= nil and BeltService.UpgradeValue(owner, "Masher") > 1)
-	K.Model:SetAttribute("MasherOn", owner ~= nil and BeltService.UpgradeValue(owner, "Masher") > 1)
-	K.Model:SetAttribute("CutterOn", owner ~= nil and BeltService.UpgradeValue(owner, "Cutter") > 1)
+	local belt = BeltService.HasBelt(owner)
+	K.Model:SetAttribute("HasBelt", belt)
+	showBeltBase(K, belt)
+	if not belt then
+		BeltService.Clear(K)
+	end
+	-- sem esteira nenhuma máquina aparece (elas ficam em cima dela)
+	local function has(id: string, min: number): boolean
+		return belt and BeltService.UpgradeValue(owner, id) > min
+	end
+	showMachine(K.Belt:FindFirstChild("Washer"), has("Washer", 0))
+	showMachine(K.Belt:FindFirstChild("Cutter"), has("Cutter", 1))
+	showMachine(K.Belt:FindFirstChild("Feeder"), has("Feeder", 0))
+	showMachine(K.Belt:FindFirstChild("Drum"), has("Drum", 0))
+	showMachine(K.Belt:FindFirstChild("Masher"), has("Masher", 1))
+	K.Model:SetAttribute("MasherOn", has("Masher", 1))
+	K.Model:SetAttribute("CutterOn", has("Cutter", 1))
 	local auto = K.Belt:FindFirstChild("AutoPeeler")
 	if not auto then
 		return
 	end
-	local rate = if K.Owner then BeltService.UpgradeValue(K.Owner, "AutoPeel") else 0
+	local rate = if belt then BeltService.UpgradeValue(K.Owner, "AutoPeel") else 0
 	local on = rate > 0
 	auto:SetAttribute("Active", on)
 	auto:SetAttribute("Rate", rate)
@@ -223,7 +305,7 @@ end
 
 -- Moedas/min que chegam sozinhas ao Rei (limitado pelo que o carrinho consegue levar).
 function BeltService.AutoRate(player: Player?): number
-	if not player then
+	if not player or not BeltService.HasBelt(player) then
 		return 0
 	end
 	local rate = BeltService.UpgradeValue(player, "AutoPeel") + BeltService.UpgradeValue(player, "Drum")
@@ -298,6 +380,10 @@ end
 function BeltService.Init(services)
 	S = services
 	S.Bus.Connect("Loaded", function(player)
+		local data = S.Data.Get(player)
+		if data then
+			migrateBelt(data)
+		end
 		publishUpgrades(player)
 		local K = S.Kitchen.GetOwnedKitchen(player)
 		if K then

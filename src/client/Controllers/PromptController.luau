@@ -60,7 +60,11 @@ local function evaluate(prompt: ProximityPrompt)
 			local isOwner = K:GetAttribute("KitchenIndex") == player:GetAttribute("OwnKitchenIndex")
 			on = isOwner and state ~= "Peeling" and state ~= "Loading" and player:GetAttribute("OrderState") == "Offer"
 		elseif kind == "Belt" then
+			on = state == "Holding" and player:GetAttribute("HeldPeeled") == true and K:GetAttribute("HasBelt") == true
+		elseif kind == "Cart" then
 			on = state == "Holding" and player:GetAttribute("HeldPeeled") == true
+				and K:GetAttribute("CartState") == "Home"
+				and (K:GetAttribute("CartCount") or 0) < (K:GetAttribute("CartCapacity") or 0)
 		elseif kind == "Send" then
 			on = (state == "Free" or state == "Holding")
 				and K:GetAttribute("CartState") == "Home"

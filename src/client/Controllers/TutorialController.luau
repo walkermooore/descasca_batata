@@ -99,7 +99,8 @@ local function target(): (BasePart?, string?)
 	local state = player:GetAttribute("State")
 	local pile = k.Station.Pile.PromptAnchor
 	local tableTop = k.Station.Table.TableTop
-	local hopper = k:FindFirstChild("Belt") and k.Belt:FindFirstChild("Hopper")
+	-- batata pronta vai para o funil da esteira ou, sem esteira (começo do jogo), para o carrinho
+	local hopper = if K:GetAttribute("HasBelt") then k:FindFirstChild("Belt") and k.Belt:FindFirstChild("Hopper") else k.Cart.Root
 	local peeled = player:GetAttribute("HeldPeeled") == true
 	if step == 1 then
 		return pile

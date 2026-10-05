@@ -59,4 +59,22 @@ function KitchenClient.DistanceToBelt(): number
 	return (hopper.Position - hrp.Position).Magnitude
 end
 
+-- A cozinha onde trabalho já tem esteira? (começa sem; é a primeira compra da aba Cozinha)
+function KitchenClient.HasBelt(): boolean
+	local K = KitchenClient.GetMine()
+	return K ~= nil and K:GetAttribute("HasBelt") == true
+end
+
+-- Distância até o carrinho (sem esteira, a batata pronta vai na mão até ele).
+function KitchenClient.DistanceToCart(): number
+	local K = KitchenClient.GetMine()
+	local hrp = player.Character and player.Character:FindFirstChild("HumanoidRootPart") :: BasePart?
+	local cart = K and K:FindFirstChild("Cart")
+	local root = cart and cart:FindFirstChild("Root") :: BasePart?
+	if not root or not hrp then
+		return math.huge
+	end
+	return (root.Position - hrp.Position).Magnitude
+end
+
 return KitchenClient

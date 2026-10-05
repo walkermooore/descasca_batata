@@ -574,7 +574,7 @@ local function arrive(r)
 		end
 	end
 	if r.Dest == "Hand" then
-		C.HUD.Toast(Strings.PutOnBelt, C.HUD.Theme.Gold)
+		C.HUD.Toast(if C.Kitchen.HasBelt() then Strings.PutOnBelt else Strings.PutInCart, C.HUD.Theme.Gold)
 	end
 	finishing = nil
 	if r.Reward then

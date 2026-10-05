@@ -85,6 +85,7 @@ local function catalog(tab: string)
 				Cost = nxt and nxt.Cost,
 				IsUpgrade = true,
 				Done = nxt == nil,
+				NeedsBelt = u.Requires == "Esteira" and (levels.Esteira or 1) < 2,
 			})
 		end
 		local wings = player:GetAttribute("Wings") or 0
@@ -250,6 +251,11 @@ local function row(r, order: number, ownedSet, coins: number)
 	if r.IsUpgrade then
 		if r.Done then
 			b.Text = if Config.UpgradesById[r.UpgradeId].Toggle then Strings.Owned else Strings.MaxLevel
+			b.BackgroundColor3 = T.Panel
+			b.TextColor3 = T.Dim
+		elseif r.NeedsBelt then
+			-- máquinas ficam em cima da esteira: só depois de comprá-la
+			b.Text = Strings.NeedsBeltShort
 			b.BackgroundColor3 = T.Panel
 			b.TextColor3 = T.Dim
 		else

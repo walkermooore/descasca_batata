@@ -765,7 +765,8 @@ function ItemPreview.Make(parent: GuiObject, kind: string, id: string): Viewport
 	elseif kind == "Item" then
 		model = collectionModel(id)
 	elseif kind == "Upgrade" then
-		model = kitchenModel(id) or machineModel(id)
+		local pid = if id == "Esteira" then "Belt" else id -- a esteira comprada usa a miniatura da esteira
+		model = kitchenModel(pid) or machineModel(pid)
 	elseif kind == "Theme" then
 		model = themeModel(id)
 	elseif kind == "Pass" then

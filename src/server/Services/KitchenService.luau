@@ -761,7 +761,11 @@ local function wirePrompt(prompt: ProximityPrompt, K)
 		if kind == "Pile" then
 			S.Peel.GivePotato(player, K)
 		elseif kind == "Belt" then
-			S.Belt.PlaceHeld(player, K)
+			if S.Belt.HasBelt(K.Owner) then
+				S.Belt.PlaceHeld(player, K)
+			end
+		elseif kind == "Cart" then
+			S.Belt.PlaceHeldInCart(player, K)
 		elseif kind == "Send" then
 			local st = S.Session.GetState(player)
 			if st ~= "Peeling" and st ~= "Loading" then
@@ -825,6 +829,7 @@ local function setupKitchen(model: Model)
 			wirePrompt(d, K)
 		end
 	end
+	KitchenService.ApplyUpgrades(K) -- cozinha livre começa sem esteira
 end
 
 function KitchenService.Init(services)
