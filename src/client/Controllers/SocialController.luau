@@ -274,10 +274,25 @@ local function refreshGuest()
 	end
 end
 
+-- Tag dourada [VIP] antes do nome no chat de quem tem o passe VIP.
+local function vipChatTag()
+	local TextChatService = game:GetService("TextChatService")
+	TextChatService.OnIncomingMessage = function(message: TextChatMessage)
+		local props = Instance.new("TextChatMessageProperties")
+		local src = message.TextSource
+		local who = src and Players:GetPlayerByUserId(src.UserId)
+		if who and who:GetAttribute("VIP") == true then
+			props.PrefixText = "<font color=\"#D6AC4A\">[VIP]</font> " .. message.PrefixText
+		end
+		return props
+	end
+end
+
 function Social.Init(controllers)
 	C = controllers
 	T = C.HUD.Theme
 	local gui = C.HUD.Gui()
+	vipChatTag()
 
 	panel = Instance.new("Frame")
 	panel.Name = "Social"

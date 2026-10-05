@@ -281,7 +281,7 @@ return {
 	{ "Mais Ajudantes", "More Helpers", "Más Ayudantes" },
 	{ "+2 vagas de ajudante.", "+2 helper slots.", "+2 espacios de ayudante." },
 	{ "VIP da Cozinha Real", "Royal Kitchen VIP", "VIP de la Cocina Real" },
-	{ "+20% Moedas, tag no chat, área VIP.", "+20% Coins, chat tag, VIP area.", "+20% Monedas, etiqueta en el chat, zona VIP." },
+	{ "+20% Moedas e tag dourada [VIP] no chat.", "+20% Coins and a gold [VIP] chat tag.", "+20% Monedas y etiqueta dorada [VIP] en el chat." },
 	{ "Sorte Dourada", "Golden Luck", "Suerte Dorada" },
 	{ "+50% de chance de batata dourada.", "+50% golden potato chance.", "+50% de probabilidad de papa dorada." },
 	{ "Moedas x2", "Coins x2", "Monedas x2" },

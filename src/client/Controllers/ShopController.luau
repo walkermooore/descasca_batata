@@ -103,7 +103,9 @@ local function catalog(tab: string)
 	if tab == "Passes" then
 		table.insert(rows, { Id = "HeaderPasses", Header = "Passes (para sempre)" })
 		for _, p in Config.GamePasses do
-			table.insert(rows, { Id = p.Id, Name = p.Name, Desc = p.Desc, Robux = p.Price, IsPass = true, Soon = p.PassId == 0 })
+			if not p.Hidden then
+				table.insert(rows, { Id = p.Id, Name = p.Name, Desc = p.Desc, Robux = p.Price, IsPass = true, Soon = p.PassId == 0 })
+			end
 		end
 		table.insert(rows, { Id = "HeaderProducts", Header = "Pacotes (uso único)" })
 		for _, p in Config.Products do

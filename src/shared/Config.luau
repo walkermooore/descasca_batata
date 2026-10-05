@@ -467,8 +467,8 @@ Config.GamePasses = {
 	{ Id = "CarrinhoTurbo", PassId = 0, Name = "Carrinho Turbo", Price = 99, SpeedBonus = 0.40, OfferAt = "WingBought", Desc = "+40% de velocidade ao andar e no carrinho." },
 	{ Id = "GanhoOffline8h", PassId = 0, Name = "Ganho Offline 8h", Price = 199, OfferAt = "OfflineReturn", Desc = "Ganho offline passa de 2h para 8h." },
 	{ Id = "AutoDescascar", PassId = 0, Name = "Auto-Descascar", Price = 249, OfferAt = "Played30", Desc = "Segurar o botão descasca sozinho (rendimento máx. 85%)." },
-	{ Id = "MaisAjudantes", PassId = 0, Name = "Mais Ajudantes", Price = 299, ExtraSlots = 2, OfferAt = "FirstHelper", Desc = "+2 vagas de ajudante." },
-	{ Id = "VIP", PassId = 0, Name = "VIP da Cozinha Real", Price = 299, CoinBonus = 0.20, OfferAt = "FirstRebirth", Desc = "+20% Moedas, tag no chat, área VIP." },
+	{ Id = "MaisAjudantes", PassId = 0, Name = "Mais Ajudantes", Price = 299, ExtraSlots = 2, OfferAt = "FirstHelper", Hidden = not Config.Features.Build, Desc = "+2 vagas de ajudante." }, -- só vale com a grade de máquinas
+	{ Id = "VIP", PassId = 0, Name = "VIP da Cozinha Real", Price = 299, CoinBonus = 0.20, OfferAt = "FirstRebirth", Desc = "+20% Moedas e tag dourada [VIP] no chat." },
 	{ Id = "SorteDourada", PassId = 0, Name = "Sorte Dourada", Price = 349, GoldenBonus = 0.5, OfferAt = "FirstGolden", Desc = "+50% de chance de batata dourada." },
 	{ Id = "MoedasX2", PassId = 0, Name = "Moedas x2", Price = 399, CoinMultiplier = 2, Desc = "Dobra todas as Moedas, para sempre." },
 	{ Id = "ChefLendario", PassId = 0, Name = "Chef Lendário", Price = 199, Desc = "Chapéu de chef dourado e rastro brilhante ao andar." },

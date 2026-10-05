@@ -135,6 +135,39 @@ ACTIONS.AllPasses = function(player, data)
 	return "Todos os passes (só nesta sessão)"
 end
 
+ACTIONS.NoPasses = function(player, data)
+	for _, p in Config.GamePasses do
+		S.Monetization.RevokePass(player, p.Id)
+	end
+	return "Passes desligados (só nesta sessão)"
+end
+
+-- um passe por vez: liga se não tem, desliga se já tem (só nesta sessão)
+ACTIONS.TogglePass = function(player, data, id)
+	local def = typeof(id) == "string" and Config.GamePassesById[id]
+	if not def then
+		return "Passe desconhecido"
+	end
+	if S.Monetization.HasPass(player, id) then
+		S.Monetization.RevokePass(player, id)
+		return def.Name .. ": desligado"
+	end
+	S.Monetization.GrantPass(player, id)
+	return def.Name .. ": ligado"
+end
+
+-- simula a compra de um pacote (sem cobrar Robux)
+ACTIONS.Product = function(player, data, id)
+	local def = typeof(id) == "string" and Config.ProductsById[id]
+	if not def then
+		return "Pacote desconhecido"
+	end
+	if not S.Monetization.DebugGrantProduct(player, id) then
+		return def.Name .. ": sem efeito para testar"
+	end
+	return def.Name .. ": entregue"
+end
+
 ACTIONS.Delivered = function(player, data)
 	data.Stats.SeasonDelivered += Config.Rebirth.PotatoesRequired
 	S.Rebirth.Publish(player)

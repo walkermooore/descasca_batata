@@ -49,6 +49,8 @@ local function publishPasses(player: Player)
 	player:SetAttribute("Subscribed", subscribed[player] == true)
 end
 
+local refreshPassEffects
+
 -- Efeitos de entrega única e de estado ao ganhar um passe.
 local function onPassGranted(player: Player, id: string)
 	local data = S.Data.Get(player)
@@ -64,6 +66,11 @@ local function onPassGranted(player: Player, id: string)
 		end
 		S.Economy.Add(player, 5000, "Pass:KitInicial")
 	end
+	refreshPassEffects(player)
+end
+
+-- Reaplica tudo que depende de passes (velocidade, capacidade, avatar, cosméticos...).
+refreshPassEffects = function(player: Player)
 	S.Session.Publish(player)
 	S.Session.RefreshMovement(player)
 	S.Kitchen.RefreshOwner(player)
@@ -82,6 +89,14 @@ function MonetizationService.GrantPass(player: Player, id: string)
 	end
 	owned[player][id] = true
 	onPassGranted(player, id)
+end
+
+-- Menu TESTE: tira um passe só nesta sessão (para testar com e sem).
+function MonetizationService.RevokePass(player: Player, id: string)
+	if owned[player] and owned[player][id] then
+		owned[player][id] = nil
+		refreshPassEffects(player)
+	end
 end
 
 local function checkPasses(player: Player)
@@ -253,6 +268,12 @@ local function grantProduct(player: Player, def): boolean
 end
 GRANT.Product = grantProduct
 
+-- Menu TESTE: entrega um pacote sem cobrar (o DevService só aceita no Studio, dono ou admin).
+function MonetizationService.DebugGrantProduct(player: Player, id: string): boolean
+	local def = Config.ProductsById[id]
+	return def ~= nil and grantProduct(player, def)
+end
+
 local function productByAssetId(assetId: number)
 	for _, p in Config.Products do
 		if p.ProductId ~= 0 and p.ProductId == assetId then
@@ -376,7 +397,7 @@ function MonetizationService.TryOffer(player: Player, trigger: string)
 		return
 	end
 	for _, p in Config.GamePasses do
-		if p.OfferAt == trigger and p.PassId ~= 0 and not MonetizationService.HasPass(player, p.Id) and not data.OfferFlags[p.Id] then
+		if p.OfferAt == trigger and p.PassId ~= 0 and not p.Hidden and not MonetizationService.HasPass(player, p.Id) and not data.OfferFlags[p.Id] then
 			data.OfferFlags[p.Id] = true
 			popupsShown[player] = (popupsShown[player] or 0) + 1
 			S.Analytics.PurchaseStep(player, 1, p.Id)
